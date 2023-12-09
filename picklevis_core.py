@@ -2,6 +2,7 @@ import pickle
 from typing import Callable
 import logging
 
+from capture import metastack
 
 logger = logging.getLogger(__file__)
 
@@ -27,6 +28,9 @@ class Unpickler(pickle._Unpickler):
         self.picklevis_ops = []
         self.picklevis_byte_count = []
         self._file = file
+        self._captures = [
+            metastack.MetastackCapture(),
+        ]
 
         for opcode in OPCODES:
             self.dispatch[opcode] = self.inspect_dispatch(opcode, self.dispatch[opcode])
@@ -46,6 +50,9 @@ class Unpickler(pickle._Unpickler):
             else:
                 before = self._unframer.current_frame.tell()
 
+            for capture in self._captures:
+                capture.precall(OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+
             # Call the real dispatch function
             func(self, *args, **kwargs)
 
@@ -53,6 +60,9 @@ class Unpickler(pickle._Unpickler):
                 after = self._file.tell()
             else:
                 after = self._unframer.current_frame.tell()
+
+            for capture in self._captures:
+                capture.postcall(OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             if not in_frame:
                 # Do not count in_frame to avoid duplicated count
