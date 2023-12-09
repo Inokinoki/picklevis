@@ -3,6 +3,7 @@ from typing import Any, Callable
 import logging
 
 from capture import metastack
+from capture.memo import MemoCapture
 
 logger = logging.getLogger(__file__)
 
@@ -30,6 +31,7 @@ class Unpickler(pickle._Unpickler):
         self._file = file
         self._captures = [
             metastack.MetastackCapture(),
+            MemoCapture(),
         ]
 
         for opcode in OPCODES:
