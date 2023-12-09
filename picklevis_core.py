@@ -20,12 +20,17 @@ class Unpickler(pickle._Unpickler):
 
     def __init__(self, file, *args, **kwargs) -> None:
         super().__init__(file, *args, **kwargs)
+
+        self.picklevis_ops = []
+
         for opcode in OPCODES:
             self.dispatch[opcode] = self.inspect_dispatch(opcode, self.dispatch[opcode])
 
     def inspect_dispatch(self, opcode, func: Callable):
         def inspector(self, *args, **kwargs):
-            logger.info(f"Calling {func.__name__} for opcode 0x{opcode:02x}")
+            logger.debug(f"Calling {func.__name__} for opcode 0x{opcode:02x}")
+            self.picklevis_ops.append(func.__name__)
+
             func(self, *args, **kwargs)
 
         return inspector
@@ -33,4 +38,7 @@ class Unpickler(pickle._Unpickler):
 
 if __name__ == "__main__":
     with open("data.pkl", "rb") as f:
-        Unpickler(f).load()
+        unpickler = Unpickler(f)
+        unpickler.load()
+        print(len(unpickler.picklevis_ops))
+
