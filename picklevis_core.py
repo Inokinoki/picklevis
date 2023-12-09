@@ -4,6 +4,7 @@ import logging
 
 from capture import metastack
 from capture.memo import MemoCapture
+from capture.stack import StackCapture
 
 logger = logging.getLogger(__file__)
 
@@ -32,6 +33,7 @@ class Unpickler(pickle._Unpickler):
         self._captures = [
             metastack.MetastackCapture(),
             MemoCapture(),
+            StackCapture(),
         ]
 
         for opcode in OPCODES:
