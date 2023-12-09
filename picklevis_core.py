@@ -22,6 +22,8 @@ class Unpickler(pickle._Unpickler):
         super().__init__(file, *args, **kwargs)
 
         self.picklevis_ops = []
+        self.picklevis_byte_count = []
+        self._file = file
 
         for opcode in OPCODES:
             self.dispatch[opcode] = self.inspect_dispatch(opcode, self.dispatch[opcode])
@@ -31,7 +33,27 @@ class Unpickler(pickle._Unpickler):
             logger.debug(f"Calling {func.__name__} for opcode 0x{opcode:02x}")
             self.picklevis_ops.append(func.__name__)
 
+            in_frame = False
+            if self._unframer is not None and self._unframer.current_frame is not None:
+                in_frame = True
+
+            if not in_frame:
+                before = self._file.tell()
+            else:
+                before = self._unframer.current_frame.tell()
+
+            # Call the real dispatch function
             func(self, *args, **kwargs)
+
+            if not in_frame:
+                after = self._file.tell()
+            else:
+                after = self._unframer.current_frame.tell()
+
+            if not in_frame:
+                # Do not count in_frame to avoid duplicated count
+                self.picklevis_byte_count.append(after - before + 1)    # Plus the opcode
+            logger.debug(f"Read {after - before} bytes in {func.__name__}")
 
         return inspector
 
@@ -40,5 +62,6 @@ if __name__ == "__main__":
     with open("data.pkl", "rb") as f:
         unpickler = Unpickler(f)
         unpickler.load()
-        print(len(unpickler.picklevis_ops))
+        print(f"OPCODES:\t{len(unpickler.picklevis_ops)}")
+        print(f"READ BYTES:\t{sum(unpickler.picklevis_byte_count)}")
 
