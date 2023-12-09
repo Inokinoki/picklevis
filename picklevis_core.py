@@ -1,5 +1,5 @@
 import pickle
-from typing import Callable
+from typing import Any, Callable
 import logging
 
 from capture import metastack
@@ -70,6 +70,10 @@ class Unpickler(pickle._Unpickler):
             logger.debug(f"Read {after - before} bytes in {func.__name__}")
 
         return inspector
+    
+    def find_class(self, module_name: str, global_name: str) -> Any:
+        logger.debug(f"Finding {global_name} in {module_name}")
+        return super().find_class(module_name, global_name)
 
 
 if __name__ == "__main__":
