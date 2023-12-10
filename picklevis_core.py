@@ -65,7 +65,7 @@ class Unpickler(pickle._Unpickler):
                 before = self._unframer.current_frame.tell()
 
             for capture in self._captures:
-                capture.precall(OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+                events.events += capture.precall(OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             # Call the real dispatch function
             func(self, *args, **kwargs)
@@ -90,7 +90,7 @@ class Unpickler(pickle._Unpickler):
                 events.offset = before - 1
 
             for capture in self._captures:
-                capture.postcall(OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+                events.events += capture.postcall(OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             self.picklevis_events.append(events)
 
@@ -100,7 +100,7 @@ class Unpickler(pickle._Unpickler):
             logger.debug(f"Read {after - before} bytes in {func.__name__}")
 
         return inspector
-    
+
     def find_class(self, module_name: str, global_name: str) -> Any:
         logger.debug(f"Finding {global_name} in {module_name}")
         return super().find_class(module_name, global_name)
