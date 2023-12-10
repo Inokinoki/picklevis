@@ -10,12 +10,20 @@ class PicklevisEventType(Enum):
     MEMO = 5,
 
 
+class PicklevisDataSource(Enum):
+    FILE = 1,
+    STACK = 2,
+    METASTACK = 3,
+    MEMO = 4,
+
+
 class PicklevisEvent:
-    def __init__(self, opcode, byte_count=0, offset=0, *arg, **kwarg):
+    def __init__(self, opcode, byte_count=0, offset=0, datasource=PicklevisDataSource.FILE, *arg, **kwarg):
         self.opcode = opcode
         self.offset = offset
         self.byte_count = byte_count
         self.type = PicklevisEventType.INFO
+        self.datasource = datasource
 
 
 class PicklevisEventGroup(PicklevisEvent):
