@@ -1,6 +1,8 @@
 import logging
+from typing import List
 
 from capture.base import PicklevisCapturer
+from event import PicklevisEvent
 
 
 logger = logging.getLogger(__file__)
@@ -11,9 +13,9 @@ class StackCapture(PicklevisCapturer):
         super().__init__()
         self.temp = []
 
-    def precall(self, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs):
+    def precall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
         if stack is None:
-            return
+            return []
 
         if op_name == "STOP":
             logger.debug(f"Stopping with {stack[-1]} as return value")
@@ -56,10 +58,11 @@ class StackCapture(PicklevisCapturer):
             logger.debug(f"Loading tuple {self.temp}")
         elif op_name == "BINPERSID":
             logger.debug(f"Loading persistent {stack[-1]}")
+        return []
 
-    def postcall(self, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs):
+    def postcall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
         if stack is None:
-            return
+            return []
 
         if op_name == "GLOBAL":
             klass = stack[-1]
@@ -99,3 +102,4 @@ class StackCapture(PicklevisCapturer):
             logger.debug(f"Loaded buffer {stack[-1]}")
         elif op_name == "READONLY_BUFFER":
             logger.debug(f"Made buffer {stack[-1]} readonly")
+        return []

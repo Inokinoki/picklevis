@@ -1,6 +1,8 @@
 import logging
+from typing import List
 
 from capture.base import PicklevisCapturer
+from event import PicklevisEvent
 
 
 logger = logging.getLogger(__file__)
@@ -15,12 +17,13 @@ class MemoCapture(PicklevisCapturer):
         self.memo_setter = None
         self.touched_key = None
 
-    def precall(self, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs):
+    def precall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
         if memo is not None:
             if op_name == "PUT" or op_name == "BINPUT" or op_name == "LONG_BINPUT":
                 self.last_memo = memo
+        return []
 
-    def postcall(self, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs):
+    def postcall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
         if memo is not None:
             if op_name == "PUT" or op_name == "BINPUT" or op_name == "LONG_BINPUT":
                 touched_key = None
@@ -40,3 +43,4 @@ class MemoCapture(PicklevisCapturer):
                 logger.debug(f"Get {stack[-1]} from stack as {touched_key}")
             elif op_name == "MEMOIZE":
                 logger.debug(f"Memorize {stack[-1]} from stack as {len(memo) - 1}")
+        return []
