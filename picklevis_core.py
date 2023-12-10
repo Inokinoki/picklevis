@@ -6,6 +6,9 @@ from capture import metastack
 from capture.memo import MemoCapture
 from capture.stack import StackCapture
 
+from event import PicklevisEventGroup
+
+
 logger = logging.getLogger(__file__)
 
 OPCODES = pickle._Unpickler.dispatch.keys()
@@ -29,12 +32,15 @@ class Unpickler(pickle._Unpickler):
         self.picklevis_opcodes = []
         self.picklevis_ops = []
         self.picklevis_byte_count = []
+        self.picklevis_events = []
         self._file = file
         self._captures = [
             metastack.MetastackCapture(),
             MemoCapture(),
             StackCapture(),
         ]
+        self.current_frame_offset = 0
+        self.current_frame_size = 0
 
         for opcode in OPCODES:
             self.dispatch[opcode] = self.inspect_dispatch(opcode, self.dispatch[opcode])
@@ -48,6 +54,8 @@ class Unpickler(pickle._Unpickler):
             in_frame = False
             if self._unframer is not None and self._unframer.current_frame is not None:
                 in_frame = True
+
+            events = PicklevisEventGroup(opcode)
 
             if not in_frame:
                 before = self._file.tell()
@@ -65,8 +73,24 @@ class Unpickler(pickle._Unpickler):
             else:
                 after = self._unframer.current_frame.tell()
 
+            # Update frame info
+            if opcode == pickle.FRAME[0]:
+                self.current_frame_offset = before
+                self.current_frame_size = after - before
+
+            # Update byte count
+            events.byte_count = after - before + 1
+
+            # Update offset in frame
+            if in_frame:
+                events.offset = before - 1 + self.current_frame_offset
+            else:
+                events.offset = before - 1
+
             for capture in self._captures:
                 capture.postcall(OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+
+            self.picklevis_events.append(events)
 
             if not in_frame:
                 # Do not count in_frame to avoid duplicated count
@@ -87,4 +111,6 @@ if __name__ == "__main__":
         print(f"OPERATIONS:\t{len(unpickler.picklevis_ops)}")
         print(f"OPCODES:\t{len(unpickler.picklevis_opcodes)}")
         print(f"READ BYTES:\t{sum(unpickler.picklevis_byte_count)}")
+        for event in unpickler.picklevis_events:
+            print(f"[{event.type.name}]{OPCODE_INT_NAME_MAPPING[event.opcode]} at {event.offset} with {event.byte_count} bytes")
 
