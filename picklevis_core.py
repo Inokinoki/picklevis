@@ -2,6 +2,8 @@ import pickle
 from typing import Any, Callable
 import logging
 
+import sys
+
 from capture import metastack
 from capture.memo import MemoCapture
 from capture.stack import StackCapture
@@ -111,6 +113,7 @@ if __name__ == "__main__":
         print(f"OPERATIONS:\t{len(unpickler.picklevis_ops)}")
         print(f"OPCODES:\t{len(unpickler.picklevis_opcodes)}")
         print(f"READ BYTES:\t{sum(unpickler.picklevis_byte_count)}")
-        for event in unpickler.picklevis_events:
-            print(f"[{event.type.name}]{OPCODE_INT_NAME_MAPPING[event.opcode]} at {event.offset} with {event.byte_count} bytes")
+        if "--verbose" in sys.argv:
+            for event in unpickler.picklevis_events:
+                print(f"[{event.type.name}] {OPCODE_INT_NAME_MAPPING[event.opcode]} at {event.offset} with {event.byte_count} bytes")
 
