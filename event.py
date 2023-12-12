@@ -17,13 +17,17 @@ class PicklevisDataSource(Enum):
     MEMO = 4,
 
 
+BYTE_COUNT_FULL_LINE = -1
+
+
 class PicklevisEvent:
-    def __init__(self, opcode, byte_count=0, offset=0, datasource=PicklevisDataSource.FILE, *arg, **kwarg):
+    def __init__(self, opcode, byte_count=0, offset=0, datasource=PicklevisDataSource.FILE, detail="", *arg, **kwarg):
         self.opcode = opcode
         self.offset = offset
         self.byte_count = byte_count
         self.type = PicklevisEventType.INFO
         self.datasource = datasource
+        self.detail = detail
 
 
 class PicklevisEventGroup(PicklevisEvent):
