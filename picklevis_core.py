@@ -65,7 +65,7 @@ class Unpickler(pickle._Unpickler):
                 before = self._unframer.current_frame.tell()
 
             for capture in self._captures:
-                events.events += capture.precall(OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+                events.events += capture.precall(opcode, OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             # Call the real dispatch function
             func(self, *args, **kwargs)
@@ -90,7 +90,7 @@ class Unpickler(pickle._Unpickler):
                 events.offset = before - 1
 
             for capture in self._captures:
-                events.events += capture.postcall(OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+                events.events += capture.postcall(opcode, OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             self.picklevis_events.append(events)
 
@@ -113,6 +113,7 @@ if __name__ == "__main__":
         print(f"OPERATIONS:\t{len(unpickler.picklevis_ops)}")
         print(f"OPCODES:\t{len(unpickler.picklevis_opcodes)}")
         print(f"READ BYTES:\t{sum(unpickler.picklevis_byte_count)}")
+        print(f"Event groups: {len(unpickler.picklevis_events)}")
         if "--verbose" in sys.argv:
             for event in unpickler.picklevis_events:
                 print(f"[{event.type.name}] {OPCODE_INT_NAME_MAPPING[event.opcode]} at {event.offset} with {event.byte_count} bytes")

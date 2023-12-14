@@ -10,8 +10,8 @@ class PicklevisEventType(Enum):
     MEMO = 5,
 
 
-class PicklevisDataSource(Enum):
-    FILE = 1,
+class PicklevisEventSource(Enum):
+    UNKNOWN = 1,
     STACK = 2,
     METASTACK = 3,
     MEMO = 4,
@@ -21,7 +21,7 @@ BYTE_COUNT_FULL_LINE = -1
 
 
 class PicklevisEvent:
-    def __init__(self, opcode, byte_count=0, offset=0, datasource=PicklevisDataSource.FILE, detail="", *arg, **kwarg):
+    def __init__(self, opcode, byte_count=0, offset=0, datasource=PicklevisEventSource.UNKNOWN, detail="", *arg, **kwarg):
         self.opcode = opcode
         self.offset = offset
         self.byte_count = byte_count
