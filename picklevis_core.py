@@ -77,7 +77,8 @@ class Unpickler(pickle._Unpickler):
 
             # Update frame info
             if opcode == pickle.FRAME[0]:
-                self.current_frame_offset = before
+                # Frame length is described in 8 bytes
+                self.current_frame_offset = before + 8
                 self.current_frame_size = after - before
 
             # Update byte count
