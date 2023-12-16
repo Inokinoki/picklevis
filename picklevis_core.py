@@ -105,6 +105,13 @@ class Unpickler(pickle._Unpickler):
         logger.debug(f"Finding {global_name} in {module_name}")
         return super().find_class(module_name, global_name)
 
+    def get_events(self):
+        # Wrapper for events, could have other events
+        return self.picklevis_events
+
+    def get_file(self):
+        return self._file
+
 
 if __name__ == "__main__":
     with open("data.pkl", "rb") as f:
@@ -118,3 +125,5 @@ if __name__ == "__main__":
             for event in unpickler.picklevis_events:
                 print(f"[{event.type.name}] {OPCODE_INT_NAME_MAPPING[event.opcode]} at {event.offset} with {event.byte_count} bytes")
 
+        from render.html import render_to_html
+        print(render_to_html(unpickler, "data.pkl.html"))
