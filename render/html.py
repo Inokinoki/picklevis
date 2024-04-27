@@ -2,12 +2,14 @@
 from event import PicklevisEventType, PicklevisEventSource, PicklevisEventGroup, PicklevisEvent
 from picklevis_core import Unpickler, OPCODE_INT_NAME_MAPPING
 
+import os
 import pickle
 import string
 
 
 BYTE_PREFIX = "byte-"
 BYTE_ASCII_PREFIX = "byte-ascii-"
+BLOCK_PREFIX = "block-"
 
 
 def _render_hex_table(unpickler: Unpickler, f):
@@ -34,7 +36,10 @@ def _render_hex_table(unpickler: Unpickler, f):
 
         b_index = 0
         for b in bs:
-            f.write(f'<td id="{BYTE_PREFIX}{byte_counter + b_index}">{b:02X}&nbsp;</td> ')
+            f.write(f'<td id="{BYTE_PREFIX}{byte_counter + b_index}" ')
+            f.write(f'onmouseover="change_for_byte({byte_counter + b_index}, \'red\')" ')
+            f.write(f'onmouseout="change_for_byte({byte_counter + b_index}, \'\')">')
+            f.write(f'{b:02X}&nbsp;</td>')
             b_index += 1
             if b_index == 8:
                 f.write("<td> </td>")
@@ -65,24 +70,41 @@ def _render_hex_table(unpickler: Unpickler, f):
 def render_to_html(unpickler: Unpickler, name):
     i = 0
     with open(name, "w") as f:
-        f.write("<html><body>\n")
+        f.write("<html><head>\n")
+        # Add utility functions
+        with open(os.path.dirname(os.path.abspath(__file__)) + "/utils.js") as js_file:
+            f.write(f"<script>{js_file.read()}</script>")
+        f.write("</head><body>")
         _render_hex_table(unpickler, f)
+
+        f.write("<script>\n")
+        f.write(f'const lookupTable = new Array({sum(unpickler.picklevis_byte_count)});\n')
+        f.write(f'const byte_ascii_prefix = "{BYTE_ASCII_PREFIX}";\n')
+        f.write(f'const byte_prefix = "{BYTE_PREFIX}";\n')
+        f.write(f'const block_prefix = "{BLOCK_PREFIX}";\n')
+        f.write("</script>\n")
 
         pkl_file = unpickler.get_file()
         for event in unpickler.get_events():
             if pkl_file.seek(event.offset) == event.offset:
                 content = pkl_file.read(event.byte_count)
-                f.write("<style>")
-                f.write(f"td#{BYTE_ASCII_PREFIX}{event.offset}, td#{BYTE_PREFIX}{event.offset}" " { color: " + "blue" + ";} ")
-                if event.opcode != pickle.FRAME[0]:
-                    for index in range(event.offset + 1, event.offset + event.byte_count):
-                        f.write(f"td#{BYTE_ASCII_PREFIX}{index}, td#{BYTE_PREFIX}{index}" " { background-color: " + "red" + ";} ")
-                else:
-                    for index in range(event.offset + 1, event.offset + event.byte_count):
-                        f.write(f"td#{BYTE_ASCII_PREFIX}{index}, td#{BYTE_PREFIX}{index}" " { background-color: " + "rgba(128, 128, 128, 128)" + ";} ")
 
-                f.write("</style>")
-                f.write(f"[OP-{OPCODE_INT_NAME_MAPPING[event.opcode]}] {event.opcode}, {event.byte_count} bytes - {event.offset}: {content} <br/>")
+                start = event.offset
+                end = event.offset + event.byte_count
+                if event.opcode != pickle.FRAME[0]:
+                    f.write("<script>")
+                    f.write(f"lookupTable[{event.offset}] = ")
+                    f.write("{\n")
+                    f.write(f'start: {start}, end: {end}\n')
+                    f.write("};\n")
+                    for i in range(start + 1, end):
+                        f.write(f"lookupTable[{i}] = ")
+                        f.write("{\n")
+                        f.write(f'start: {start}, end: {end}\n')
+                        f.write("};\n")
+                    f.write("</script>\n")
+
+                f.write(f'<div id="{BLOCK_PREFIX}{start}-{end}" style="display: none;">[OP-{OPCODE_INT_NAME_MAPPING[event.opcode]}] {event.opcode}, {event.byte_count} bytes - {event.offset}: {content} </div>')
         f.write("</body></html>")
         print(i)
     return i
