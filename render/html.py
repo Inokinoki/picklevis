@@ -74,8 +74,13 @@ def render_to_html(unpickler: Unpickler, name):
         # Add utility functions
         with open(os.path.dirname(os.path.abspath(__file__)) + "/utils.js") as js_file:
             f.write(f"<script>{js_file.read()}</script>")
+        with open(os.path.dirname(os.path.abspath(__file__)) + "/utils.css") as css_file:
+            f.write(f"<style>{css_file.read()}</style>")
         f.write("</head><body>")
+        f.write('<div style="display: flex;">\n')
+        f.write('<div>\n')
         _render_hex_table(unpickler, f)
+        f.write("</div>\n")
 
         f.write("<script>\n")
         f.write(f'const lookupTable = new Array({sum(unpickler.picklevis_byte_count)});\n')
@@ -104,7 +109,8 @@ def render_to_html(unpickler: Unpickler, name):
                         f.write("};\n")
                     f.write("</script>\n")
 
-                f.write(f'<div id="{BLOCK_PREFIX}{start}-{end}" style="display: none;">[OP-{OPCODE_INT_NAME_MAPPING[event.opcode]}] {event.opcode}, {event.byte_count} bytes - {event.offset}: {content} </div>')
+                f.write(f'<div class="event-block" id="{BLOCK_PREFIX}{start}-{end}" style="display: none;"><div class="event-block-content">[OP-{OPCODE_INT_NAME_MAPPING[event.opcode]}] {event.opcode}, {event.byte_count} bytes - {event.offset}: {content} </div></div>')
+        f.write('</div><!-- flexible container -->\n')
         f.write("</body></html>")
         print(i)
     return i

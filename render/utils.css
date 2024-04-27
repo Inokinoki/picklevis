@@ -1,0 +1,8 @@
+.event-block {
+    margin: 1rem;
+    flex-grow: 1;
+}
+
+.event-block-content {
+    position: fixed;
+}
