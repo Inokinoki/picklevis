@@ -102,15 +102,25 @@ def render_to_html(unpickler: Unpickler, name):
                     f.write("{\n")
                     f.write(f'start: {start}, end: {end}\n')
                     f.write("};\n")
-                    for i in range(start + 1, end):
-                        f.write(f"lookupTable[{i}] = ")
+                    for index in range(start + 1, end):
+                        f.write(f"lookupTable[{index}] = ")
                         f.write("{\n")
                         f.write(f'start: {start}, end: {end}\n')
                         f.write("};\n")
                     f.write("</script>\n")
+                f.write(f'<div class="event-block" id="{BLOCK_PREFIX}{start}-{end}" style="display: none;">\n')
+                render_event_info(f, event, content)
+                f.write("</div>\n")
 
-                f.write(f'<div class="event-block" id="{BLOCK_PREFIX}{start}-{end}" style="display: none;"><div class="event-block-content">[OP-{OPCODE_INT_NAME_MAPPING[event.opcode]}] {event.opcode}, {event.byte_count} bytes - {event.offset}: {content} </div></div>')
         f.write('</div><!-- flexible container -->\n')
         f.write("</body></html>")
-        print(i)
+
     return i
+
+
+def render_event_info(f, event, content):
+    f.write('<div class="event-block-content">')
+    f.write(f'Operation: {OPCODE_INT_NAME_MAPPING[event.opcode]} ({event.opcode}, {hex(event.opcode)})<br/>\n')
+    f.write(f'From byte {event.offset} ({hex(event.offset)}) to byte {event.offset + event.byte_count - 1} ({hex(event.offset + event.byte_count - 1)})<br/>\n')
+    f.write(f'Total: {event.byte_count} byte{"s" if event.byte_count > 1 else ""}')
+    f.write("</div>")
