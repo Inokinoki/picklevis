@@ -122,5 +122,6 @@ def render_event_info(f, event, content):
     f.write('<div class="event-block-content">')
     f.write(f'Operation: {OPCODE_INT_NAME_MAPPING[event.opcode]} ({event.opcode}, {hex(event.opcode)})<br/>\n')
     f.write(f'From byte {event.offset} ({hex(event.offset)}) to byte {event.offset + event.byte_count - 1} ({hex(event.offset + event.byte_count - 1)})<br/>\n')
-    f.write(f'Total: {event.byte_count} byte{"s" if event.byte_count > 1 else ""}')
+    f.write(f'Total: {event.byte_count} byte{"s" if event.byte_count > 1 else ""}<br/>\n')
+
     f.write("</div>")
