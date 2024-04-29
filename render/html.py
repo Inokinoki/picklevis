@@ -51,10 +51,14 @@ def _render_hex_table(unpickler: Unpickler, f):
         f.write("<td> </td><td>|</td>")
         b_index = 0
         for b in bs:
+            f.write(f'<td id="{BYTE_ASCII_PREFIX}{byte_counter + b_index}" ')
+            f.write(f'onmouseover="change_for_byte({byte_counter + b_index}, \'red\')" ')
+            f.write(f'onmouseout="change_for_byte({byte_counter + b_index}, \'\')">')
             if chr(b) in string.printable:
-                f.write(f'<td id="{BYTE_ASCII_PREFIX}{byte_counter + b_index}">{chr(b)}</td>')
+                f.write(f'{chr(b)}')
             else:
-                f.write(f'<td id="{BYTE_ASCII_PREFIX}{byte_counter + b_index}">.</td>')
+                f.write(".")
+            f.write("</td>\n")
             b_index += 1
 
         if len(bs) < 16:
