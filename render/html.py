@@ -37,7 +37,7 @@ def _render_hex_table(unpickler: Unpickler, f):
         b_index = 0
         for b in bs:
             f.write(f'<td id="{BYTE_PREFIX}{byte_counter + b_index}" ')
-            f.write(f'onmouseover="change_for_byte({byte_counter + b_index}, \'red\')" ')
+            f.write(f'onmouseover="change_for_byte({byte_counter + b_index}, highlight_color)" ')
             f.write(f'onmouseout="change_for_byte({byte_counter + b_index}, \'\')">')
             f.write(f'{b:02X}&nbsp;</td>')
             b_index += 1
@@ -52,7 +52,7 @@ def _render_hex_table(unpickler: Unpickler, f):
         b_index = 0
         for b in bs:
             f.write(f'<td id="{BYTE_ASCII_PREFIX}{byte_counter + b_index}" ')
-            f.write(f'onmouseover="change_for_byte({byte_counter + b_index}, \'red\')" ')
+            f.write(f'onmouseover="change_for_byte({byte_counter + b_index}, highlight_color)" ')
             f.write(f'onmouseout="change_for_byte({byte_counter + b_index}, \'\')">')
             if chr(b) in string.printable:
                 f.write(f'{chr(b)}')
@@ -91,6 +91,7 @@ def render_to_html(unpickler: Unpickler, name):
         f.write(f'const byte_ascii_prefix = "{BYTE_ASCII_PREFIX}";\n')
         f.write(f'const byte_prefix = "{BYTE_PREFIX}";\n')
         f.write(f'const block_prefix = "{BLOCK_PREFIX}";\n')
+        f.write('const highlight_color = "#D7DBDD";\n')
         f.write("</script>\n")
 
         pkl_file = unpickler.get_file()
@@ -122,10 +123,58 @@ def render_to_html(unpickler: Unpickler, name):
     return i
 
 
+def render_stack_cell(f, content):
+    f.write(f'<td style="border: 1px solid black; padding: 10px;">{content}</td>')
+
+
+def render_stack_num(f, number):
+    f.write(f'<td style="text-align: right; padding: 10px;">{number}</td>')
+
+
+def render_stack_row(f, content, number=None):
+    f.write('<tr>')
+    render_stack_num(f, number if number else '')
+    render_stack_cell(f, content)
+    f.write('</tr>')
+
+
+def render_stack(f, stack, count=5):
+    stack_size = len(stack)
+    for e in stack[:min(count, stack_size)]:
+        render_stack_row(f, e, stack_size - 1)
+        stack_size -= 1
+
+    if stack_size > 0:
+        render_stack_row(f, "...")
+
+
+def render_push_stack(f, stack, elements, count=5):
+    for ele in elements:
+        render_stack_row(f, ele)
+    # TODO: Add a column for description?
+    f.write('<tr style="text-align: center"><td></td><td>&DownArrow;</td></tr>')
+
+    render_stack(f, stack, count)
+
+
 def render_event_info(f, event, content):
     f.write('<div class="event-block-content">')
     f.write(f'Operation: {OPCODE_INT_NAME_MAPPING[event.opcode]} ({event.opcode}, {hex(event.opcode)})<br/>\n')
     f.write(f'From byte {event.offset} ({hex(event.offset)}) to byte {event.offset + event.byte_count - 1} ({hex(event.offset + event.byte_count - 1)})<br/>\n')
     f.write(f'Total: {event.byte_count} byte{"s" if event.byte_count > 1 else ""}<br/>\n')
+    f.write(f'Event type: {event.type}<br/>\n')
+    f.write(f'Sub events: {len(event.events)}<br/>\n')
+    for e in event.events:
+        f.write(f'---- Sub event: {e.type}<br/>\n')
+        f.write(f'---- Sub event datasource: {e.datasource}<br/>\n')
+        f.write(f'---- Sub event detail: {e.detail}<br/>\n')
+        # TODO: Remove dummy data
+        f.write(f'<table style="text-align: center; border-collapse: collapse;">')
+        render_stack(f, stack=[f"Element {n}" for n in range(10)])
+        f.write(f'</table>')
+
+        f.write(f'<table style="text-align: center; border-collapse: collapse;">')
+        render_push_stack(f, stack=[f"Element {n}" for n in range(10)], elements=["1", "2", "3"])
+        f.write(f'</table>')
 
     f.write("</div>")
