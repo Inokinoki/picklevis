@@ -37,8 +37,9 @@ def _render_hex_table(unpickler: Unpickler, f):
         b_index = 0
         for b in bs:
             f.write(f'<td id="{BYTE_PREFIX}{byte_counter + b_index}" ')
-            f.write(f'onmouseover="change_for_byte({byte_counter + b_index}, highlight_color)" ')
-            f.write(f'onmouseout="change_for_byte({byte_counter + b_index}, \'\')">')
+            f.write(f'onmouseover="highlight_for_byte({byte_counter + b_index}, highlight_color)" ')
+            f.write(f'onmouseout="unhighlight_for_byte({byte_counter + b_index}, \'\')" ')
+            f.write(f'onclick="swtich_for_byte({byte_counter + b_index}, highlight_color)">')
             f.write(f'{b:02X}&nbsp;</td>')
             b_index += 1
             if b_index == 8:
@@ -52,8 +53,9 @@ def _render_hex_table(unpickler: Unpickler, f):
         b_index = 0
         for b in bs:
             f.write(f'<td id="{BYTE_ASCII_PREFIX}{byte_counter + b_index}" ')
-            f.write(f'onmouseover="change_for_byte({byte_counter + b_index}, highlight_color)" ')
-            f.write(f'onmouseout="change_for_byte({byte_counter + b_index}, \'\')">')
+            f.write(f'onmouseover="highlight_for_byte({byte_counter + b_index}, highlight_color)" ')
+            f.write(f'onmouseout="unhighlight_for_byte({byte_counter + b_index}, \'\')" ')
+            f.write(f'onclick="swtich_for_byte({byte_counter + b_index}, highlight_color)">')
             if chr(b) in string.printable:
                 f.write(f'{chr(b)}')
             else:
@@ -92,6 +94,7 @@ def render_to_html(unpickler: Unpickler, name):
         f.write(f'const byte_prefix = "{BYTE_PREFIX}";\n')
         f.write(f'const block_prefix = "{BLOCK_PREFIX}";\n')
         f.write('const highlight_color = "#D7DBDD";\n')
+        f.write('var highlighted = undefined;\n')
         f.write("</script>\n")
 
         pkl_file = unpickler.get_file()
