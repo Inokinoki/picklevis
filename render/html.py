@@ -156,6 +156,14 @@ def render_push_stack(f, stack, elements, count=5):
 
     render_stack(f, stack, count)
 
+def render_pop_stack(f, stack, elements, count=5):
+    for ele in elements:
+        render_stack_row(f, ele)
+    # TODO: Add a column for description?
+    f.write('<tr style="text-align: center"><td></td><td>&UpArrow;</td></tr>')
+
+    render_stack(f, stack, count)
+
 
 def render_event_info(f, event, content):
     f.write('<div class="event-block-content">')
