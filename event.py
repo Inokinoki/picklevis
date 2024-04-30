@@ -35,3 +35,14 @@ class PicklevisEventGroup(PicklevisEvent):
         super().__init__(opcode, byte_count, offset, *arg, **kwarg)
         self.type = PicklevisEventType.GROUP
         self.events = []
+
+
+class PicklevisEventMemo(PicklevisEvent):
+    def __init__(self, opcode, byte_count=0, offset=0, datasource=PicklevisEventSource.UNKNOWN, detail="", stack=None, touched_elements=None, *arg, **kwarg):
+        super().__init__(opcode, byte_count, offset, datasource, detail, *arg, **kwarg)
+        self.type = PicklevisEventType.MEMO
+
+        # Touched parts
+        self.stack = stack
+        self.elements = touched_elements
+

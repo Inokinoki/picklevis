@@ -136,7 +136,7 @@ def render_stack_num(f, number):
 
 def render_stack_row(f, content, number=None):
     f.write('<tr>')
-    render_stack_num(f, number if number else '')
+    render_stack_num(f, number if number is not None else '')
     render_stack_cell(f, content)
     f.write('</tr>')
 
@@ -152,20 +152,25 @@ def render_stack(f, stack, count=5):
 
 
 def render_push_stack(f, stack, elements, count=5):
+    f.write(f'<table style="text-align: center; border-collapse: collapse;">')
     for ele in elements:
         render_stack_row(f, ele)
     # TODO: Add a column for description?
     f.write('<tr style="text-align: center"><td></td><td>&DownArrow;</td></tr>')
 
     render_stack(f, stack, count)
+    f.write(f'</table>')
+
 
 def render_pop_stack(f, stack, elements, count=5):
+    f.write(f'<table style="text-align: center; border-collapse: collapse;">')
     for ele in elements:
         render_stack_row(f, ele)
     # TODO: Add a column for description?
     f.write('<tr style="text-align: center"><td></td><td>&UpArrow;</td></tr>')
 
     render_stack(f, stack, count)
+    f.write(f'</table>')
 
 
 def render_event_info(f, event, content):
@@ -179,13 +184,10 @@ def render_event_info(f, event, content):
         f.write(f'---- Sub event: {e.type}<br/>\n')
         f.write(f'---- Sub event datasource: {e.datasource}<br/>\n')
         f.write(f'---- Sub event detail: {e.detail}<br/>\n')
-        # TODO: Remove dummy data
-        f.write(f'<table style="text-align: center; border-collapse: collapse;">')
-        render_stack(f, stack=[f"Element {n}" for n in range(10)])
-        f.write(f'</table>')
 
-        f.write(f'<table style="text-align: center; border-collapse: collapse;">')
-        render_push_stack(f, stack=[f"Element {n}" for n in range(10)], elements=["1", "2", "3"])
-        f.write(f'</table>')
+        if e.datasource == PicklevisEventSource.STACK and e.type == PicklevisEventType.MEMO:
+            render_pop_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
+        elif e.datasource == PicklevisEventSource.MEMO and e.type == PicklevisEventType.STACK:
+            render_push_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
 
     f.write("</div>")
