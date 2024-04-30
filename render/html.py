@@ -2,6 +2,7 @@
 from event import PicklevisEventType, PicklevisEventSource, PicklevisEventGroup, PicklevisEvent
 from picklevis_core import Unpickler, OPCODE_INT_NAME_MAPPING
 
+import html
 import os
 import pickle
 import string
@@ -10,6 +11,8 @@ import string
 BYTE_PREFIX = "byte-"
 BYTE_ASCII_PREFIX = "byte-ascii-"
 BLOCK_PREFIX = "block-"
+
+LINE_MAX_LINE = 32
 
 
 def _render_hex_table(unpickler: Unpickler, f):
@@ -57,7 +60,7 @@ def _render_hex_table(unpickler: Unpickler, f):
             f.write(f'onmouseout="unhighlight_for_byte({byte_counter + b_index}, \'\')" ')
             f.write(f'onclick="swtich_for_byte({byte_counter + b_index}, highlight_color)">')
             if chr(b) in string.printable:
-                f.write(f'{chr(b)}')
+                f.write(f'{html.escape(chr(b))}')
             else:
                 f.write(".")
             f.write("</td>\n")
@@ -127,11 +130,12 @@ def render_to_html(unpickler: Unpickler, name):
 
 
 def render_stack_cell(f, content):
-    f.write(f'<td style="border: 1px solid black; padding: 10px;">{content}</td>')
+    c = content if len(content) < LINE_MAX_LINE else f"{content[:LINE_MAX_LINE]}..."
+    f.write(f'<td style="border: 1px solid black; padding: 10px;">{html.escape(c)}</td>')
 
 
 def render_stack_num(f, number):
-    f.write(f'<td style="text-align: right; padding: 10px;">{number}</td>')
+    f.write(f'<td style="text-align: right; padding: 10px;">{html.escape(str(number))}</td>')
 
 
 def render_stack_row(f, content, number=None):
@@ -144,17 +148,22 @@ def render_stack_row(f, content, number=None):
 def render_stack(f, stack, count=5):
     stack_size = len(stack)
     for e in stack[:min(count, stack_size)]:
-        render_stack_row(f, e, stack_size - 1)
+        render_stack_row(f, str(e), stack_size - 1)
         stack_size -= 1
 
     if stack_size > 0:
         render_stack_row(f, "...")
 
+    f.write('<tr>')
+    render_stack_num(f, '')
+    f.write('<td style="padding: 10px;">Stack</td>')
+    f.write('</tr>')
+
 
 def render_push_stack(f, stack, elements, count=5):
     f.write(f'<table style="text-align: center; border-collapse: collapse;">')
     for ele in elements:
-        render_stack_row(f, ele)
+        render_stack_row(f, str(ele))
     # TODO: Add a column for description?
     f.write('<tr style="text-align: center"><td></td><td>&DownArrow;</td></tr>')
 
@@ -165,7 +174,7 @@ def render_push_stack(f, stack, elements, count=5):
 def render_pop_stack(f, stack, elements, count=5):
     f.write(f'<table style="text-align: center; border-collapse: collapse;">')
     for ele in elements:
-        render_stack_row(f, ele)
+        render_stack_row(f, str(ele))
     # TODO: Add a column for description?
     f.write('<tr style="text-align: center"><td></td><td>&UpArrow;</td></tr>')
 
@@ -187,7 +196,12 @@ def render_event_info(f, event, content):
 
         if e.datasource == PicklevisEventSource.STACK and e.type == PicklevisEventType.MEMO:
             render_pop_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
-        elif e.datasource == PicklevisEventSource.MEMO and e.type == PicklevisEventType.STACK:
-            render_push_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
+        elif e.type == PicklevisEventType.STACK:
+            if e.datasource == PicklevisEventSource.MEMO:
+                render_push_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
+            elif e.datasource == PicklevisEventSource.STACK:
+                render_pop_stack(f, stack=e.stack if e.stack else [], elements=e.elements)
+            else:
+                render_push_stack(f, stack=e.stack if e.stack else [], elements=e.elements)
 
     f.write("</div>")
