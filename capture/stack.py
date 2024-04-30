@@ -259,8 +259,9 @@ class StackCapture(PicklevisCapturer):
                     elements=[stack[-1]],
                 ),
             )
-        elif op_name == "STRING" or op_name == "BINSTRING" or op_name == "SHORT_BINSTRING" or\
-            op_name == "UNICODE" or op_name == "BINUNICODE" or op_name == "BINUNICODE8":
+        elif op_name == "STRING" or op_name == "BINSTRING" or\
+            op_name == "UNICODE" or op_name == "BINUNICODE" or op_name == "BINUNICODE8" or\
+            op_name == "SHORT_BINUNICODE" or op_name == "SHORT_BINSTRING":
             logger.debug(f"Loaded string {stack[-1]}")
             events.append(
                 PicklevisEventStack(
