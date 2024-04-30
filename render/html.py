@@ -182,6 +182,26 @@ def render_pop_stack(f, stack, elements, count=5):
     f.write(f'</table>')
 
 
+def render_push_meta_stack(f, stack, meta_stack, count=5):
+    f.write(f'<table style="text-align: center; border-collapse: collapse;">')
+    render_stack(f, meta_stack, count)
+    # TODO: Add a column for description?
+    f.write('<tr style="text-align: center"><td></td><td>&DownArrow;</td></tr>')
+
+    render_stack(f, stack, count)
+    f.write(f'</table>')
+
+
+def render_pop_meta_stack(f, stack, meta_stack, count=5):
+    f.write(f'<table style="text-align: center; border-collapse: collapse;">')
+    render_stack(f, meta_stack, count)
+    # TODO: Add a column for description?
+    f.write('<tr style="text-align: center"><td></td><td>&DownArrow;</td></tr>')
+
+    render_stack(f, stack, count)
+    f.write(f'</table>')
+
+
 def render_event_info(f, event, content):
     f.write('<div class="event-block-content">')
     f.write(f'Operation: {OPCODE_INT_NAME_MAPPING[event.opcode]} ({event.opcode}, {hex(event.opcode)})<br/>\n')
@@ -203,5 +223,10 @@ def render_event_info(f, event, content):
                 render_pop_stack(f, stack=e.stack if e.stack else [], elements=e.elements)
             else:
                 render_push_stack(f, stack=e.stack if e.stack else [], elements=e.elements)
+        elif e.type == PicklevisEventType.METASTACK:
+            if e.datasource == PicklevisEventSource.METASTACK:
+                render_push_meta_stack(f, stack=e.stack if e.stack else [], meta_stack=e.meta_stack if e.meta_stack else [])
+            else:
+                render_pop_meta_stack(f, stack=e.stack if e.stack else [], meta_stack=e.meta_stack if e.meta_stack else [])
 
     f.write("</div>")

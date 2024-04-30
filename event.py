@@ -55,3 +55,13 @@ class PicklevisEventStack(PicklevisEvent):
         # Touched parts
         self.stack = stack
         self.elements = elements
+
+
+class PicklevisEventMetaStack(PicklevisEvent):
+    def __init__(self, opcode, byte_count=0, offset=0, datasource=PicklevisEventSource.UNKNOWN, detail="", stack=None, elements=None, *arg, **kwarg):
+        super().__init__(opcode, byte_count, offset, datasource, detail, *arg, **kwarg)
+        self.type = PicklevisEventType.METASTACK
+
+        # Touched parts
+        self.stack = stack
+        self.meta_stack = elements
