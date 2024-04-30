@@ -59,6 +59,7 @@ class MemoCapture(PicklevisCapturer):
                     PicklevisEventMemo(
                         opcode,
                         datasource=PicklevisEventSource.MEMO,
+                        stack=list(reversed(stack)),
                         touched_elements=[stack[-1]],
                     ),
                 )
@@ -71,7 +72,6 @@ class MemoCapture(PicklevisCapturer):
                         opcode,
                         datasource=PicklevisEventSource.STACK,
                         stack=s,
-                        detail=f"Memorize {stack[-1]} from stack as {len(memo) - 1}",
                         touched_elements=[str(len(memo) - 1)],
                     ),
                 )

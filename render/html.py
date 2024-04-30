@@ -214,8 +214,11 @@ def render_event_info(f, event, content):
         f.write(f'---- Sub event datasource: {e.datasource}<br/>\n')
         f.write(f'---- Sub event detail: {e.detail}<br/>\n')
 
-        if e.datasource == PicklevisEventSource.STACK and e.type == PicklevisEventType.MEMO:
-            render_pop_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
+        if e.type == PicklevisEventType.MEMO:
+            if e.datasource == PicklevisEventSource.STACK:
+                render_pop_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
+            elif e.datasource == PicklevisEventSource.MEMO:
+                render_push_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
         elif e.type == PicklevisEventType.STACK:
             if e.datasource == PicklevisEventSource.MEMO:
                 render_push_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
