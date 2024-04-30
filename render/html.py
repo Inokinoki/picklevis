@@ -22,7 +22,7 @@ def _render_hex_table(unpickler: Unpickler, f):
     line_count = 0
     f.write('<table style="border-spacing: 0;"><tr><th></th>')
     for i in range(16):
-        f.write(f"<th>{i:02X}&nbsp;</th>")
+        f.write(f"<th><code>{i:02X}&nbsp;</code></th>")
         if i == 7:
             f.write("<th> </th>")
     f.write("</tr>")
@@ -35,7 +35,7 @@ def _render_hex_table(unpickler: Unpickler, f):
             break
 
         byte_counter = line_count * 16
-        f.write(f"<tr><th>{(line_count * 16):08X}</th>")
+        f.write(f"<tr><th><code>{(line_count * 16):08X}</code></th>")
 
         b_index = 0
         for b in bs:
@@ -43,7 +43,7 @@ def _render_hex_table(unpickler: Unpickler, f):
             f.write(f'onmouseover="highlight_for_byte({byte_counter + b_index}, highlight_color)" ')
             f.write(f'onmouseout="unhighlight_for_byte({byte_counter + b_index}, \'\')" ')
             f.write(f'onclick="swtich_for_byte({byte_counter + b_index}, highlight_color)">')
-            f.write(f'{b:02X}&nbsp;</td>')
+            f.write(f'<code>{b:02X}&nbsp;</code></td>')
             b_index += 1
             if b_index == 8:
                 f.write("<td> </td>")
@@ -58,12 +58,12 @@ def _render_hex_table(unpickler: Unpickler, f):
             f.write(f'<td id="{BYTE_ASCII_PREFIX}{byte_counter + b_index}" ')
             f.write(f'onmouseover="highlight_for_byte({byte_counter + b_index}, highlight_color)" ')
             f.write(f'onmouseout="unhighlight_for_byte({byte_counter + b_index}, \'\')" ')
-            f.write(f'onclick="swtich_for_byte({byte_counter + b_index}, highlight_color)">')
+            f.write(f'onclick="swtich_for_byte({byte_counter + b_index}, highlight_color)"><code>')
             if chr(b) in string.printable:
                 f.write(f'{html.escape(chr(b))}')
             else:
                 f.write(".")
-            f.write("</td>\n")
+            f.write("</code></td>\n")
             b_index += 1
 
         if len(bs) < 16:
@@ -131,11 +131,11 @@ def render_to_html(unpickler: Unpickler, name):
 
 def render_stack_cell(f, content):
     c = content if len(content) < LINE_MAX_LINE else f"{content[:LINE_MAX_LINE]}..."
-    f.write(f'<td style="border: 1px solid black; padding: 10px;">{html.escape(c)}</td>')
+    f.write(f'<td style="border: 1px solid black; padding: 10px;"><code>{html.escape(c)}</code></td>')
 
 
 def render_stack_num(f, number):
-    f.write(f'<td style="text-align: right; padding: 10px;">{html.escape(str(number))}</td>')
+    f.write(f'<td style="text-align: right; padding: 10px;"><code>{html.escape(str(number))}</code></td>')
 
 
 def render_stack_row(f, content, number=None):
@@ -204,16 +204,10 @@ def render_pop_meta_stack(f, stack, meta_stack, count=5):
 
 def render_event_info(f, event, content):
     f.write('<div class="event-block-content">')
-    f.write(f'Operation: {OPCODE_INT_NAME_MAPPING[event.opcode]} ({event.opcode}, {hex(event.opcode)})<br/>\n')
+    f.write(f'Operation: {html.escape(OPCODE_INT_NAME_MAPPING[event.opcode])} ({event.opcode}, {hex(event.opcode)})<br/>\n')
     f.write(f'From byte {event.offset} ({hex(event.offset)}) to byte {event.offset + event.byte_count - 1} ({hex(event.offset + event.byte_count - 1)})<br/>\n')
     f.write(f'Total: {event.byte_count} byte{"s" if event.byte_count > 1 else ""}<br/>\n')
-    f.write(f'Event type: {event.type}<br/>\n')
-    f.write(f'Sub events: {len(event.events)}<br/>\n')
     for e in event.events:
-        f.write(f'---- Sub event: {e.type}<br/>\n')
-        f.write(f'---- Sub event datasource: {e.datasource}<br/>\n')
-        f.write(f'---- Sub event detail: {e.detail}<br/>\n')
-
         if e.type == PicklevisEventType.MEMO:
             if e.datasource == PicklevisEventSource.STACK:
                 render_pop_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
