@@ -26,7 +26,7 @@ class StackCapture(PicklevisCapturer):
                     opcode,
                     datasource=PicklevisEventSource.STACK,
                     stack=list(reversed(stack[:-1])),
-                    elements=[{stack[-1]}],
+                    elements=[stack[-1]],
                 ),
             )
         elif op_name == "BUILD":

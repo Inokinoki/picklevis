@@ -68,7 +68,25 @@ class Unpickler(pickle._Unpickler):
                 events.events += capture.precall(opcode, OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             # Call the real dispatch function
-            func(self, *args, **kwargs)
+            try:
+                func(self, *args, **kwargs)
+            except Exception as e:
+                if not in_frame:
+                    after = self._file.tell()
+                else:
+                    after = self._unframer.current_frame.tell()
+
+                # Update byte count
+                events.byte_count = after - before + 1
+
+                # Update offset in frame
+                if in_frame:
+                    events.offset = before - 1 + self.current_frame_offset
+                else:
+                    events.offset = before - 1
+
+                self.picklevis_events.append(events)
+                raise e
 
             if not in_frame:
                 after = self._file.tell()
