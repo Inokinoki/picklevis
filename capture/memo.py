@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from capture.base import PicklevisCapturer
-from event import PicklevisEvent, PicklevisEventMemo, PicklevisEventSource, PicklevisEventType
+from event import PicklevisEvent, PicklevisEventMemo, PicklevisEventSource
 
 
 logger = logging.getLogger(__file__)

@@ -1,5 +1,5 @@
 
-from event import PicklevisEventType, PicklevisEventSource, PicklevisEventGroup, PicklevisEvent
+from event import PicklevisEventType, PicklevisEventSource
 from picklevis_core import Unpickler, OPCODE_INT_NAME_MAPPING
 
 import html
