@@ -72,3 +72,44 @@ function swtich_for_byte(index, color) {
         highlighted = index;
     }
 }
+
+function keyboard_dispatch(e) {
+    console.log(e);
+    if (highlighted) {
+        if (lookupTable[highlighted] == undefined) return;
+
+        const highlight_start = lookupTable[highlighted].start, highlight_end = lookupTable[highlighted].end;
+        // TODO: Basic vim-like
+        if (e.keyCode == 72) {
+            // h - left
+            if (highlight_start > 0) {
+                highlighted = undefined;
+                unhighlight_for_byte(highlight_start, "");
+                highlight_for_byte(highlight_start - 1, highlight_color);
+                highlighted = highlight_start - 1;
+            }
+        } else if (e.keyCode == 74) {
+            // j - previous line
+            if (highlight_start > 15) {
+                highlighted = undefined;
+                unhighlight_for_byte(highlight_start, "");
+                highlight_for_byte(highlight_start - 16, highlight_color);
+                highlighted = highlight_start - 16;
+            }
+        } else if (e.keyCode == 75) {
+            // k - next line
+            // Highlighted will not reach here if invalid
+            highlighted = undefined;
+            unhighlight_for_byte(highlight_start, "");
+            highlight_for_byte(highlight_end + 16, highlight_color);
+            highlighted = highlight_end + 16;
+        } else if (e.keyCode == 76) {
+            // l - right
+            // Highlighted will not reach here if invalid
+            highlighted = undefined;
+            unhighlight_for_byte(highlight_start, "");
+            highlight_for_byte(highlight_end, highlight_color);
+            highlighted = highlight_end;
+        }
+    }
+}

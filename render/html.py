@@ -85,7 +85,7 @@ def render_to_html(unpickler: Unpickler, name):
             f.write(f"<script>{js_file.read()}</script>")
         with open(os.path.dirname(os.path.abspath(__file__)) + "/utils.css") as css_file:
             f.write(f"<style>{css_file.read()}</style>")
-        f.write("</head><body>")
+        f.write('</head><body onkeydown="keyboard_dispatch(event)">')
         f.write('<div style="display: flex;">\n')
         f.write('<div>\n')
         _render_hex_table(unpickler, f)
