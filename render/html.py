@@ -225,5 +225,7 @@ def render_event_info(f, event, content):
                 render_push_meta_stack(f, stack=e.stack if e.stack else [], meta_stack=e.meta_stack if e.meta_stack else [])
             else:
                 render_pop_meta_stack(f, stack=e.stack if e.stack else [], meta_stack=e.meta_stack if e.meta_stack else [])
+        else:
+            f.write(f'{e.type.name}: {e.detail} - {content[e.offset: e.offset + e.byte_count]}<br/>')
 
     f.write("</div>")

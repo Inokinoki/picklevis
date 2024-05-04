@@ -4,8 +4,9 @@ import logging
 
 import sys
 
-from capture import metastack
+from capture.metastack import MetastackCapture
 from capture.memo import MemoCapture
+from capture.misc import MiscCapture
 from capture.stack import StackCapture
 
 from event import PicklevisEventGroup
@@ -37,9 +38,10 @@ class Unpickler(pickle._Unpickler):
         self.picklevis_events = []
         self._file = file
         self._captures = [
-            metastack.MetastackCapture(),
+            MetastackCapture(),
             MemoCapture(),
             StackCapture(),
+            MiscCapture(),
         ]
         self.current_frame_offset = 0
         self.current_frame_size = 0
