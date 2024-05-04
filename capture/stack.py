@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from capture.base import PicklevisCapturer
 from event import PicklevisEvent, PicklevisEventSource, PicklevisEventStack
@@ -9,11 +8,11 @@ logger = logging.getLogger(__file__)
 
 
 class StackCapture(PicklevisCapturer):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
         self.temp = []
 
-    def precall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
+    def precall(self, opcode, op_name, stack=None, *args, **kwargs):
         if stack is None:
             return []
 
@@ -136,7 +135,7 @@ class StackCapture(PicklevisCapturer):
             )
         return events
 
-    def postcall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
+    def postcall(self, opcode, op_name, stack=None, *args, **kwargs):
         if stack is None:
             return []
 

@@ -31,7 +31,7 @@ class PicklevisEvent:
 
 
 class PicklevisEventGroup(PicklevisEvent):
-    def __init__(self, opcode, byte_count=0, offset=0, *arg, **kwarg) -> None:
+    def __init__(self, opcode, byte_count=0, offset=0, *arg, **kwarg):
         super().__init__(opcode, byte_count, offset, *arg, **kwarg)
         self.type = PicklevisEventType.GROUP
         self.events = []

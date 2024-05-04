@@ -9,7 +9,7 @@ logger = logging.getLogger(__file__)
 
 
 class MemoCapture(PicklevisCapturer):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
         self.last_memo = None
 
@@ -17,7 +17,7 @@ class MemoCapture(PicklevisCapturer):
         self.memo_setter = None
         self.touched_key = None
 
-    def precall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
+    def precall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs):
         events = []
 
         if memo is not None:
@@ -25,7 +25,7 @@ class MemoCapture(PicklevisCapturer):
                 self.last_memo = memo
         return events
 
-    def postcall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
+    def postcall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs):
         events = []
 
         if memo is not None:

@@ -1,5 +1,4 @@
 import pickle
-from typing import Any, Callable
 import logging
 
 import sys
@@ -29,7 +28,7 @@ for k in pickle_objects_dict:
 
 class Unpickler(pickle._Unpickler):
 
-    def __init__(self, file, *args, **kwargs) -> None:
+    def __init__(self, file, *args, **kwargs):
         super().__init__(file, *args, **kwargs)
 
         self.picklevis_opcodes = []
@@ -49,7 +48,7 @@ class Unpickler(pickle._Unpickler):
         for opcode in OPCODES:
             self.dispatch[opcode] = self.inspect_dispatch(opcode, self.dispatch[opcode])
 
-    def inspect_dispatch(self, opcode, func: Callable):
+    def inspect_dispatch(self, opcode, func):
         def inspector(self, *args, **kwargs):
             logger.debug(f"Calling {func.__name__} for opcode 0x{opcode:02x}")
             self.picklevis_ops.append(func.__name__)
@@ -122,7 +121,7 @@ class Unpickler(pickle._Unpickler):
 
         return inspector
 
-    def find_class(self, module_name: str, global_name: str) -> Any:
+    def find_class(self, module_name: str, global_name: str):
         logger.debug(f"Finding {global_name} in {module_name}")
         return super().find_class(module_name, global_name)
 

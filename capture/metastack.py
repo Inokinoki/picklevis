@@ -1,18 +1,17 @@
 import logging
-from typing import List
 
 from capture.base import PicklevisCapturer
-from event import PicklevisEvent, PicklevisEventMetaStack, PicklevisEventSource
+from event import PicklevisEventMetaStack, PicklevisEventSource
 
 
 logger = logging.getLogger(__file__)
 
 
 class MetastackCapture(PicklevisCapturer):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
 
-    def precall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
+    def precall(self, opcode, op_name, stack=None, metastack=None, *args, **kwargs):
         events = []
 
         if metastack is not None:
@@ -121,7 +120,7 @@ class MetastackCapture(PicklevisCapturer):
         return events
 
 
-    def postcall(self, opcode, op_name, stack=None, metastack=None, memo=None, pos=0, *args, **kwargs) -> List[PicklevisEvent]:
+    def postcall(self, opcode, op_name, metastack=None, *args, **kwargs):
         events = []
 
         if op_name == "MARK" and metastack is not None:

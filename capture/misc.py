@@ -1,18 +1,16 @@
 
-from typing import List
-
 from capture.base import PicklevisCapturer
 from event import PicklevisEvent
 
 
 class MiscCapture(PicklevisCapturer):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
 
-    def precall(self, *args, **kwargs) -> List[PicklevisEvent]:
+    def precall(self, *args, **kwargs):
         return []
 
-    def postcall(self, opcode, op_name, *args, **kwargs) -> List[PicklevisEvent]:
+    def postcall(self, opcode, op_name, *args, **kwargs):
         events = []
         if op_name == "PROTO":
             events.append(
