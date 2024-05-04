@@ -107,18 +107,23 @@ def render_to_html(unpickler: Unpickler, name):
 
                 start = event.offset
                 end = event.offset + event.byte_count
-                if event.opcode != pickle.FRAME[0]:
-                    f.write("<script>")
-                    f.write(f"lookupTable[{event.offset}] = ")
+
+                if event.opcode == pickle.FRAME[0]:
+                    # TODO: Handle frame
+                    end = event.offset + 9
+
+                f.write("<script>")
+                f.write(f"lookupTable[{event.offset}] = ")
+                f.write("{\n")
+                f.write(f'start: {start}, end: {end}\n')
+                f.write("};\n")
+                for index in range(start + 1, end):
+                    f.write(f"lookupTable[{index}] = ")
                     f.write("{\n")
                     f.write(f'start: {start}, end: {end}\n')
                     f.write("};\n")
-                    for index in range(start + 1, end):
-                        f.write(f"lookupTable[{index}] = ")
-                        f.write("{\n")
-                        f.write(f'start: {start}, end: {end}\n')
-                        f.write("};\n")
-                    f.write("</script>\n")
+                f.write("</script>\n")
+
                 f.write(f'<div class="event-block" id="{BLOCK_PREFIX}{start}-{end}" style="display: none;">\n')
                 render_event_info(f, event, content)
                 f.write("</div>\n")
