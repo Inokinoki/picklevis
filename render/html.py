@@ -233,11 +233,13 @@ def render_event_info(f, event, content):
     f.write(f'Total: {event.byte_count} byte{"s" if event.byte_count > 1 else ""}<br/>\n')
     for e in event.events:
         if e.type == PicklevisEventType.MEMO:
+            f.write(f'<b>{e.type.name}:</b><br/>\n')
             if e.datasource == PicklevisEventSource.STACK:
                 render_pop_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
             elif e.datasource == PicklevisEventSource.MEMO:
                 render_push_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
         elif e.type == PicklevisEventType.STACK:
+            f.write(f'<b>{e.type.name}:</b><br/>\n')
             if e.datasource == PicklevisEventSource.MEMO:
                 render_push_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
             elif e.datasource == PicklevisEventSource.STACK:
@@ -245,6 +247,7 @@ def render_event_info(f, event, content):
             else:
                 render_push_stack(f, stack=e.stack if e.stack else [], elements=e.elements)
         elif e.type == PicklevisEventType.METASTACK:
+            f.write(f'<b>{e.type.name}:</b><br/>\n')
             if e.datasource == PicklevisEventSource.METASTACK:
                 render_push_meta_stack(f, stack=e.stack if e.stack else [], meta_stack=e.meta_stack if e.meta_stack else [])
             else:
