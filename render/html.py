@@ -101,6 +101,8 @@ def render_to_html(unpickler: Unpickler, name):
         f.write("</script>\n")
 
         pkl_file = unpickler.get_file()
+
+        frame_event_stack = []
         for event in unpickler.get_events():
             if pkl_file.seek(event.offset) == event.offset:
                 content = pkl_file.read(event.byte_count)
@@ -111,6 +113,7 @@ def render_to_html(unpickler: Unpickler, name):
                 if event.opcode == pickle.FRAME[0]:
                     # TODO: Handle frame
                     end = event.offset + 9
+                    frame_event_stack.insert(0, event)
 
                 f.write("<script>")
                 f.write(f"lookupTable[{event.offset}] = ")
@@ -125,8 +128,24 @@ def render_to_html(unpickler: Unpickler, name):
                 f.write("</script>\n")
 
                 f.write(f'<div class="event-block" id="{BLOCK_PREFIX}{start}-{end}" style="display: none;">\n')
+
+                f.write('<div class="event-block-content">')
+                f.write('<div class="event-block-stack">')
+                for frame_event in frame_event_stack[::-1]:
+                    f.write(f'In a frame from byte {frame_event.offset} ({hex(frame_event.offset)}) to byte {frame_event.offset + frame_event.byte_count - 1} ({hex(frame_event.offset + frame_event.byte_count - 1)})<br/><br/>\n')
+                f.write('</div>')
+
                 render_event_info(f, event, content)
+                f.write('</div>')
                 f.write("</div>\n")
+
+                # Handle frame event stack
+                while len(frame_event_stack) > 0:
+                    frame_event = frame_event_stack[0]
+                    if end == frame_event.offset + frame_event.byte_count - 1:
+                        frame_event_stack.pop()
+                    else:
+                        break
 
         f.write('</div><!-- flexible container -->\n')
         f.write("</body></html>")
@@ -208,7 +227,7 @@ def render_pop_meta_stack(f, stack, meta_stack, count=5):
 
 
 def render_event_info(f, event, content):
-    f.write('<div class="event-block-content">')
+    f.write('<div>')
     f.write(f'Operation: {html.escape(OPCODE_INT_NAME_MAPPING[event.opcode])} ({event.opcode}, {hex(event.opcode)})<br/>\n')
     f.write(f'From byte {event.offset} ({hex(event.offset)}) to byte {event.offset + event.byte_count - 1} ({hex(event.offset + event.byte_count - 1)})<br/>\n')
     f.write(f'Total: {event.byte_count} byte{"s" if event.byte_count > 1 else ""}<br/>\n')
