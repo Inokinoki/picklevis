@@ -5,7 +5,7 @@ from event import PicklevisEvent
 
 class MiscCapture(PicklevisCapturer):
     def __init__(self):
-        super().__init__()
+        PicklevisCapturer.__init__(self)
 
     def precall(self, *args, **kwargs):
         return []

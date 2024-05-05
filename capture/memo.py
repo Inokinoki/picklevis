@@ -1,8 +1,7 @@
 import logging
-from typing import List
 
 from capture.base import PicklevisCapturer
-from event import PicklevisEvent, PicklevisEventMemo, PicklevisEventSource
+from event import PicklevisEventMemo, PicklevisEventSource
 
 
 logger = logging.getLogger(__file__)
@@ -10,7 +9,7 @@ logger = logging.getLogger(__file__)
 
 class MemoCapture(PicklevisCapturer):
     def __init__(self):
-        super().__init__()
+        PicklevisCapturer.__init__(self)
         self.last_memo = None
 
         self.memo_getter = None
@@ -36,8 +35,8 @@ class MemoCapture(PicklevisCapturer):
                     if value == v:
                         touched_key = k
                         break
-                logger.debug(f"Set {stack[-1]} from stack as {touched_key}")
-                s = stack.copy()
+                logger.debug("Set {} from stack as {}".format(stack[-1], touched_key))
+                s = stack[:]
                 s.reverse()
                 events.append(
                     PicklevisEventMemo(
@@ -54,7 +53,7 @@ class MemoCapture(PicklevisCapturer):
                     if value == v:
                         touched_key = k
                         break
-                logger.debug(f"Get {stack[-1]} from stack as {touched_key}")
+                logger.debug("Get {} from stack as {}".format(stack[-1], touched_key))
                 events.append(
                     PicklevisEventMemo(
                         opcode,
@@ -64,7 +63,7 @@ class MemoCapture(PicklevisCapturer):
                     ),
                 )
             elif op_name == "MEMOIZE":
-                logger.debug(f"Memorize {stack[-1]} from stack as {len(memo) - 1}")
+                logger.debug("Memorize {} from stack as {}".format(stack[-1], len(memo) - 1))
                 s = stack.copy()
                 s.reverse()
                 events.append(

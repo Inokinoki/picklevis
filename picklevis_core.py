@@ -1,6 +1,7 @@
 import pickle
 import logging
 
+import platform
 import sys
 
 from capture.metastack import MetastackCapture
@@ -13,7 +14,13 @@ from event import PicklevisEventGroup
 
 logger = logging.getLogger(__file__)
 
-OPCODES = pickle._Unpickler.dispatch.keys()
+try:
+    OPCODES = pickle._Unpickler.dispatch.keys()
+    OriginalUnpickler = pickle._Unpickler
+except Exception:
+    # Fallback
+    OPCODES = pickle.Unpickler.dispatch.keys()
+    OriginalUnpickler = pickle.Unpickler
 
 OPCODE_NAME_MAPPING = {}        # A bytes (with only one byte) to opcode name string mapping
 OPCODE_INT_NAME_MAPPING = {}    # An int to opcode name string mapping
@@ -21,15 +28,15 @@ pickle_objects_dict = pickle.__dict__
 for k in pickle_objects_dict:
     pickle_object = pickle_objects_dict[k]
     if isinstance(pickle_object, bytes) and len(pickle_object) == 1:
-        if int(pickle_object[0]) in OPCODES:
+        if pickle_object[0] in OPCODES:
             OPCODE_NAME_MAPPING[pickle_object] = k
-            OPCODE_INT_NAME_MAPPING[int(pickle_object[0])] = k
+            OPCODE_INT_NAME_MAPPING[ord(pickle_object[0])] = k
 
 
-class Unpickler(pickle._Unpickler):
+class Unpickler(OriginalUnpickler):
 
     def __init__(self, file, *args, **kwargs):
-        super().__init__(file, *args, **kwargs)
+        OriginalUnpickler.__init__(self, file, *args, **kwargs)
 
         self.picklevis_opcodes = []
         self.picklevis_ops = []
@@ -45,17 +52,22 @@ class Unpickler(pickle._Unpickler):
         self.current_frame_offset = 0
         self.current_frame_size = 0
 
+        # Patch for Python 2
+        if not hasattr(self, "metastack"):
+            self.metastack = None
+
         for opcode in OPCODES:
             self.dispatch[opcode] = self.inspect_dispatch(opcode, self.dispatch[opcode])
 
     def inspect_dispatch(self, opcode, func):
         def inspector(self, *args, **kwargs):
-            logger.debug(f"Calling {func.__name__} for opcode 0x{opcode:02x}")
+            logger.debug("Calling {} for opcode 0x{:02X}".format(func.__name__, ord(opcode)))
             self.picklevis_ops.append(func.__name__)
             self.picklevis_opcodes.append(opcode)
 
             in_frame = False
-            if self._unframer is not None and self._unframer.current_frame is not None:
+            # Python 2 only supports til protocol 2: without frame support
+            if platform.python_version_tuple()[0] != '2' and self._unframer is not None and self._unframer.current_frame is not None:
                 in_frame = True
 
             events = PicklevisEventGroup(opcode)
@@ -66,7 +78,7 @@ class Unpickler(pickle._Unpickler):
                 before = self._unframer.current_frame.tell()
 
             for capture in self._captures:
-                events.events += capture.precall(opcode, OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+                events.events += capture.precall(opcode, OPCODE_INT_NAME_MAPPING[ord(opcode)], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             # Call the real dispatch function
             try:
@@ -95,7 +107,7 @@ class Unpickler(pickle._Unpickler):
                 after = self._unframer.current_frame.tell()
 
             # Update frame info
-            if opcode == pickle.FRAME[0]:
+            if platform.python_version_tuple()[0] != '2' and opcode == pickle.FRAME[0]:
                 # Frame length is described in 8 bytes
                 self.current_frame_offset = before + 8
                 self.current_frame_size = after - before
@@ -110,20 +122,20 @@ class Unpickler(pickle._Unpickler):
                 events.offset = before - 1
 
             for capture in self._captures:
-                events.events += capture.postcall(opcode, OPCODE_INT_NAME_MAPPING[opcode], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+                events.events += capture.postcall(opcode, OPCODE_INT_NAME_MAPPING[ord(opcode)], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             self.picklevis_events.append(events)
 
             if not in_frame:
                 # Do not count in_frame to avoid duplicated count
                 self.picklevis_byte_count.append(after - before + 1)    # Plus the opcode
-            logger.debug(f"Read {after - before} bytes in {func.__name__}")
+            logger.debug("Read {} bytes in {}".format(after - before, func.__name__))
 
         return inspector
 
-    def find_class(self, module_name: str, global_name: str):
-        logger.debug(f"Finding {global_name} in {module_name}")
-        return super().find_class(module_name, global_name)
+    def find_class(self, module_name, global_name):
+        logger.debug("Finding {} in {}".format(global_name, module_name))
+        return OriginalUnpickler.find_class(self, module_name, global_name)
 
     def get_events(self):
         # Wrapper for events, could have other events
@@ -134,16 +146,16 @@ class Unpickler(pickle._Unpickler):
 
 
 if __name__ == "__main__":
-    with open("data.pkl", "rb") as f:
+    with open("data.1.pkl", "rb") as f:
         unpickler = Unpickler(f)
         unpickler.load()
-        print(f"OPERATIONS:\t{len(unpickler.picklevis_ops)}")
-        print(f"OPCODES:\t{len(unpickler.picklevis_opcodes)}")
-        print(f"READ BYTES:\t{sum(unpickler.picklevis_byte_count)}")
-        print(f"Event groups: {len(unpickler.picklevis_events)}")
+        print("OPERATIONS:\t{}".format(len(unpickler.picklevis_ops)))
+        print("OPCODES:\t{}".format(len(unpickler.picklevis_opcodes)))
+        print("READ BYTES:\t{}".format(sum(unpickler.picklevis_byte_count)))
+        print("Event groups: {}".format(len(unpickler.picklevis_events)))
         if "--verbose" in sys.argv:
             for event in unpickler.picklevis_events:
-                print(f"[{event.type.name}] {OPCODE_INT_NAME_MAPPING[event.opcode]} at {event.offset} with {event.byte_count} bytes")
+                print("[{}] {} at {} with {} bytes".format(event.type.name, OPCODE_INT_NAME_MAPPING[event.opcode], event.offset, event.byte_count))
 
         from render.html import render_to_html
         print(render_to_html(unpickler, "data.pkl.html"))

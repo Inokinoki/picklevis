@@ -9,14 +9,14 @@ logger = logging.getLogger(__file__)
 
 class MetastackCapture(PicklevisCapturer):
     def __init__(self):
-        super().__init__()
+        PicklevisCapturer.__init__(self)
 
     def precall(self, opcode, op_name, stack=None, metastack=None, *args, **kwargs):
         events = []
 
         if metastack is not None:
             if op_name == "APPENDS":
-                logger.debug(f"Appending {len(metastack[-1])} items to list")
+                logger.debug("Appending {} items to list".format(len(metastack[-1])))
                 events.append(
                     PicklevisEventMetaStack(
                         opcode,
@@ -26,7 +26,7 @@ class MetastackCapture(PicklevisCapturer):
                     ),
                 )
             elif op_name == "SETITEMS":
-                logger.debug(f"Setting {len(metastack[-1])} items to dict")
+                logger.debug("Setting {} items to dict".format(len(metastack[-1])))
                 events.append(
                     PicklevisEventMetaStack(
                         opcode,
@@ -36,7 +36,7 @@ class MetastackCapture(PicklevisCapturer):
                     ),
                 )
             elif op_name == "ADDITEMS":
-                logger.debug(f"Adding {len(metastack[-1])} items to dict")
+                logger.debug("Adding {} items to dict".format(len(metastack[-1])))
                 events.append(
                     PicklevisEventMetaStack(
                         opcode,
@@ -47,7 +47,7 @@ class MetastackCapture(PicklevisCapturer):
                 )
 
             elif op_name == "LIST":
-                logger.debug(f"Creating a list with {len(metastack[-1])} items")
+                logger.debug("Creating a list with {} items".format(len(metastack[-1])))
                 events.append(
                     PicklevisEventMetaStack(
                         opcode,
@@ -57,7 +57,7 @@ class MetastackCapture(PicklevisCapturer):
                     ),
                 )
             elif op_name == "INST":
-                logger.debug(f"Creating an instance with {len(metastack[-1])} items")
+                logger.debug("Creating an instance with {} items".format(len(metastack[-1])))
                 events.append(
                     PicklevisEventMetaStack(
                         opcode,
@@ -67,7 +67,7 @@ class MetastackCapture(PicklevisCapturer):
                     ),
                 )
             elif op_name == "DICT":
-                logger.debug(f"Creating a dict with {len(metastack[-1])} items")
+                logger.debug("Creating a dict with {} items".format(len(metastack[-1])))
                 events.append(
                     PicklevisEventMetaStack(
                         opcode,
@@ -77,7 +77,7 @@ class MetastackCapture(PicklevisCapturer):
                     ),
                 )
             elif op_name == "OBJ":
-                logger.debug(f"Creating an object with {len(metastack[-1])} items")
+                logger.debug("Creating an object with {} items".format(len(metastack[-1])))
                 events.append(
                     PicklevisEventMetaStack(
                         opcode,
@@ -87,7 +87,7 @@ class MetastackCapture(PicklevisCapturer):
                     ),
                 )
             elif op_name == "FROZENSET":
-                logger.debug(f"Creating a frozen set with {len(metastack[-1])} items")
+                logger.debug("Creating a frozen set with {} items".format(len(metastack[-1])))
                 events.append(
                     PicklevisEventMetaStack(
                         opcode,
@@ -97,7 +97,7 @@ class MetastackCapture(PicklevisCapturer):
                     ),
                 )
             elif op_name == "TUPLE":
-                logger.debug(f"Creating a tuple with {len(metastack[-1])} items")
+                logger.debug("Creating a tuple with {} items".format(len(metastack[-1])))
                 events.append(
                     PicklevisEventMetaStack(
                         opcode,
