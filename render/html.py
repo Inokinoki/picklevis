@@ -1,11 +1,19 @@
 
 from event import PicklevisEventType, PicklevisEventSource
-from picklevis_core import Unpickler, OPCODE_INT_NAME_MAPPING
+from picklevis_core import OPCODE_INT_NAME_MAPPING
 
-import html
 import os
 import pickle
+import platform
 import string
+
+PYTHON_VERSION_TUPLE = platform.python_version_tuple()
+if PYTHON_VERSION_TUPLE[0] == '2':
+    # Before 3.2
+    # Since nobody is actually using prior-3.4/3.5 versions, ignore the major version 3
+    import cgi as html
+else:
+    import html
 
 
 BYTE_PREFIX = "byte-"
@@ -15,14 +23,14 @@ BLOCK_PREFIX = "block-"
 LINE_MAX_LINE = 32
 
 
-def _render_hex_table(unpickler: Unpickler, f):
+def _render_hex_table(unpickler, f):
     pkl_file = unpickler.get_file()
     pkl_file.seek(0)
 
     line_count = 0
     f.write('<table style="border-spacing: 0;"><tr><th></th>')
     for i in range(16):
-        f.write(f"<th><code>{i:02X}&nbsp;</code></th>")
+        f.write("<th><code>{:02X}&nbsp;</code></th>".format(i))
         if i == 7:
             f.write("<th> </th>")
     f.write("</tr>")
@@ -35,15 +43,15 @@ def _render_hex_table(unpickler: Unpickler, f):
             break
 
         byte_counter = line_count * 16
-        f.write(f"<tr><th><code>{(line_count * 16):08X}</code></th>")
+        f.write("<tr><th><code>{:08X}</code></th>".format(line_count * 16))
 
         b_index = 0
         for b in bs:
-            f.write(f'<td id="{BYTE_PREFIX}{byte_counter + b_index}" ')
-            f.write(f'onmouseover="highlight_for_byte({byte_counter + b_index}, highlight_color)" ')
-            f.write(f'onmouseout="unhighlight_for_byte({byte_counter + b_index}, \'\')" ')
-            f.write(f'onclick="swtich_for_byte({byte_counter + b_index}, highlight_color)">')
-            f.write(f'<code>{b:02X}&nbsp;</code></td>')
+            f.write('<td id="{}{}" '.format(BYTE_PREFIX, byte_counter + b_index))
+            f.write('onmouseover="highlight_for_byte({}, highlight_color)" '.format(byte_counter + b_index))
+            f.write('onmouseout="unhighlight_for_byte({}, \'\')" '.format(byte_counter + b_index))
+            f.write('onclick="swtich_for_byte({}, highlight_color)">'.format(byte_counter + b_index))
+            f.write('<code>{:02X}&nbsp;</code></td>'.format(ord(b)))
             b_index += 1
             if b_index == 8:
                 f.write("<td> </td>")
@@ -55,12 +63,12 @@ def _render_hex_table(unpickler: Unpickler, f):
         f.write("<td> </td><td>|</td>")
         b_index = 0
         for b in bs:
-            f.write(f'<td id="{BYTE_ASCII_PREFIX}{byte_counter + b_index}" ')
-            f.write(f'onmouseover="highlight_for_byte({byte_counter + b_index}, highlight_color)" ')
-            f.write(f'onmouseout="unhighlight_for_byte({byte_counter + b_index}, \'\')" ')
-            f.write(f'onclick="swtich_for_byte({byte_counter + b_index}, highlight_color)"><code>')
-            if chr(b) in string.printable:
-                f.write(f'{html.escape(chr(b))}')
+            f.write('<td id="{}{}" '.format(BYTE_ASCII_PREFIX, byte_counter + b_index))
+            f.write('onmouseover="highlight_for_byte({}, highlight_color)" '.format(byte_counter + b_index))
+            f.write('onmouseout="unhighlight_for_byte({}, \'\')" '.format(byte_counter + b_index))
+            f.write('onclick="swtich_for_byte({}, highlight_color)"><code>'.format(byte_counter + b_index))
+            if chr(ord(b)) in string.printable:
+                f.write(html.escape(chr(ord(b))))
             else:
                 f.write(".")
             f.write("</code></td>\n")
@@ -76,15 +84,15 @@ def _render_hex_table(unpickler: Unpickler, f):
     f.write("</table>\n")
 
 
-def render_to_html(unpickler: Unpickler, name):
+def render_to_html(unpickler, name):
     i = 0
     with open(name, "w") as f:
         f.write("<html><head>\n")
         # Add utility functions
         with open(os.path.dirname(os.path.abspath(__file__)) + "/utils.js") as js_file:
-            f.write(f"<script>{js_file.read()}</script>")
+            f.write("<script>{}</script>".format(js_file.read()))
         with open(os.path.dirname(os.path.abspath(__file__)) + "/utils.css") as css_file:
-            f.write(f"<style>{css_file.read()}</style>")
+            f.write("<style>{}</style>".format(css_file.read()))
         f.write('</head><body onkeydown="keyboard_dispatch(event)">')
         f.write('<div style="display: flex;">\n')
         f.write('<div>\n')
@@ -92,10 +100,10 @@ def render_to_html(unpickler: Unpickler, name):
         f.write("</div>\n")
 
         f.write("<script>\n")
-        f.write(f'const lookupTable = new Array({sum(unpickler.picklevis_byte_count)});\n')
-        f.write(f'const byte_ascii_prefix = "{BYTE_ASCII_PREFIX}";\n')
-        f.write(f'const byte_prefix = "{BYTE_PREFIX}";\n')
-        f.write(f'const block_prefix = "{BLOCK_PREFIX}";\n')
+        f.write('const lookupTable = new Array({});\n'.format(sum(unpickler.picklevis_byte_count)))
+        f.write('const byte_ascii_prefix = "{}";\n'.format(BYTE_ASCII_PREFIX))
+        f.write('const byte_prefix = "{}";\n'.format(BYTE_PREFIX))
+        f.write('const block_prefix = "{}";\n'.format(BLOCK_PREFIX))
         f.write('const highlight_color = "#D7DBDD";\n')
         f.write('var highlighted = undefined;\n')
         f.write("</script>\n")
@@ -104,35 +112,43 @@ def render_to_html(unpickler: Unpickler, name):
 
         frame_event_stack = []
         for event in unpickler.get_events():
-            if pkl_file.seek(event.offset) == event.offset:
+            pkl_file.seek(event.offset)
+            if pkl_file.tell() == event.offset:
                 content = pkl_file.read(event.byte_count)
 
                 start = event.offset
                 end = event.offset + event.byte_count
 
-                if event.opcode == pickle.FRAME[0]:
+                if PYTHON_VERSION_TUPLE[0] != "2" and event.opcode == pickle.FRAME[0]:
                     # TODO: Handle frame
                     end = event.offset + 9
                     frame_event_stack.insert(0, event)
 
                 f.write("<script>")
-                f.write(f"lookupTable[{event.offset}] = ")
+                f.write("lookupTable[{}] = ".format(event.offset))
                 f.write("{\n")
-                f.write(f'start: {start}, end: {end}\n')
+                f.write('start: {}, end: {}\n'.format(start, end))
                 f.write("};\n")
                 for index in range(start + 1, end):
-                    f.write(f"lookupTable[{index}] = ")
+                    f.write("lookupTable[{}] = ".format(index))
                     f.write("{\n")
-                    f.write(f'start: {start}, end: {end}\n')
+                    f.write('start: {}, end: {}\n'.format(start, end))
                     f.write("};\n")
                 f.write("</script>\n")
 
-                f.write(f'<div class="event-block" id="{BLOCK_PREFIX}{start}-{end}" style="display: none;">\n')
+                f.write('<div class="event-block" id="{}{}-{}" style="display: none;">\n'.format(BLOCK_PREFIX, start, end))
 
                 f.write('<div class="event-block-content">')
                 f.write('<div class="event-block-stack">')
                 for frame_event in frame_event_stack[::-1]:
-                    f.write(f'In a frame from byte {frame_event.offset} ({hex(frame_event.offset)}) to byte {frame_event.offset + frame_event.byte_count - 1} ({hex(frame_event.offset + frame_event.byte_count - 1)})<br/><br/>\n')
+                    f.write('In a frame from byte')
+                    f.write('{} ({})'.format(frame_event.offset, hex(frame_event.offset)))
+                    f.write('to byte')
+                    f.write('{} ({})'.format(
+                        frame_event.offset + frame_event.byte_count - 1,
+                        hex(frame_event.offset + frame_event.byte_count - 1)
+                    ))
+                    f.write('<br/><br/>\n')
                 f.write('</div>')
 
                 render_event_info(f, event, content)
@@ -154,12 +170,16 @@ def render_to_html(unpickler: Unpickler, name):
 
 
 def render_stack_cell(f, content):
-    c = content if len(content) < LINE_MAX_LINE else f"{content[:LINE_MAX_LINE]}..."
-    f.write(f'<td style="border: 1px solid black; padding: 10px;"><code>{html.escape(c)}</code></td>')
+    c = content if len(content) < LINE_MAX_LINE else "{}...".format(content[:LINE_MAX_LINE])
+    f.write('<td style="border: 1px solid black; padding: 10px;">')
+    f.write("<code>{}</code>".format(html.escape(c)))
+    f.write('</td>')
 
 
 def render_stack_num(f, number):
-    f.write(f'<td style="text-align: right; padding: 10px;"><code>{html.escape(str(number))}</code></td>')
+    f.write('<td style="text-align: right; padding: 10px;">')
+    f.write("<code>{}</code>".format(html.escape(str(number))))
+    f.write('</td>')
 
 
 def render_stack_row(f, content, number=None):
@@ -185,74 +205,90 @@ def render_stack(f, stack, count=5):
 
 
 def render_push_stack(f, stack, elements, count=5):
-    f.write(f'<table style="text-align: center; border-collapse: collapse;">')
+    f.write('<table style="text-align: center; border-collapse: collapse;">')
     for ele in elements:
         render_stack_row(f, str(ele))
     # TODO: Add a column for description?
     f.write('<tr style="text-align: center"><td></td><td>&DownArrow;</td></tr>')
 
     render_stack(f, stack, count)
-    f.write(f'</table>')
+    f.write('</table>')
 
 
 def render_pop_stack(f, stack, elements, count=5):
-    f.write(f'<table style="text-align: center; border-collapse: collapse;">')
+    f.write('<table style="text-align: center; border-collapse: collapse;">')
     for ele in elements:
         render_stack_row(f, str(ele))
     # TODO: Add a column for description?
     f.write('<tr style="text-align: center"><td></td><td>&UpArrow;</td></tr>')
 
     render_stack(f, stack, count)
-    f.write(f'</table>')
+    f.write('</table>')
 
 
 def render_push_meta_stack(f, stack, meta_stack, count=5):
-    f.write(f'<table style="text-align: center; border-collapse: collapse;">')
+    f.write('<table style="text-align: center; border-collapse: collapse;">')
     render_stack(f, meta_stack, count)
     # TODO: Add a column for description?
     f.write('<tr style="text-align: center"><td></td><td>&DownArrow;</td></tr>')
 
     render_stack(f, stack, count)
-    f.write(f'</table>')
+    f.write('</table>')
 
 
 def render_pop_meta_stack(f, stack, meta_stack, count=5):
-    f.write(f'<table style="text-align: center; border-collapse: collapse;">')
+    f.write('<table style="text-align: center; border-collapse: collapse;">')
     render_stack(f, meta_stack, count)
     # TODO: Add a column for description?
     f.write('<tr style="text-align: center"><td></td><td>&DownArrow;</td></tr>')
 
     render_stack(f, stack, count)
-    f.write(f'</table>')
+    f.write('</table>')
 
 
 def render_event_info(f, event, content):
     f.write('<div>')
-    f.write(f'Operation: {html.escape(OPCODE_INT_NAME_MAPPING[event.opcode])} ({event.opcode}, {hex(event.opcode)})<br/>\n')
-    f.write(f'From byte {event.offset} ({hex(event.offset)}) to byte {event.offset + event.byte_count - 1} ({hex(event.offset + event.byte_count - 1)})<br/>\n')
-    f.write(f'Total: {event.byte_count} byte{"s" if event.byte_count > 1 else ""}<br/>\n')
+    f.write('Operation: {} ({}, {})<br/>\n'.format(
+        html.escape(OPCODE_INT_NAME_MAPPING[ord(event.opcode)]), event.opcode, hex(ord(event.opcode)),
+    ))
+    f.write('From byte {} ({})'.format(event.offset, hex(event.offset)))
+    f.write('to byte {} '.format(event.offset + event.byte_count - 1))
+    f.write('({})<br/>\n'.format(hex(event.offset + event.byte_count - 1)))
+    f.write('Total: {} byte{}<br/>\n'.format(event.byte_count, "s" if event.byte_count > 1 else ""))
     for e in event.events:
         if e.type == PicklevisEventType.MEMO:
-            f.write(f'<b>{e.type.name}:</b><br/>\n')
+            f.write('<b>{}:</b><br/> \n'.format(e.type))
             if e.datasource == PicklevisEventSource.STACK:
-                render_pop_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
+                render_pop_stack(
+                    f,
+                    stack=e.stack if e.stack else [],
+                    elements=list(map(lambda name: 'MEMO "{}"'.format(name), e.elements))
+                )
             elif e.datasource == PicklevisEventSource.MEMO:
-                render_push_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
+                render_push_stack(
+                    f,
+                    stack=e.stack if e.stack else [],
+                    elements=list(map(lambda name: 'MEMO "{}"'.format(name), e.elements))
+                )
         elif e.type == PicklevisEventType.STACK:
-            f.write(f'<b>{e.type.name}:</b><br/>\n')
+            f.write('<b>{}:</b><br/>\n'.format(e.type))
             if e.datasource == PicklevisEventSource.MEMO:
-                render_push_stack(f, stack=e.stack if e.stack else [], elements=list(map(lambda name: f'MEMO "{name}"', e.elements)))
+                render_push_stack(
+                    f,
+                    stack=e.stack if e.stack else [],
+                    elements=list(map(lambda name: 'MEMO "{}"'.format(name), e.elements))
+                )
             elif e.datasource == PicklevisEventSource.STACK:
                 render_pop_stack(f, stack=e.stack if e.stack else [], elements=e.elements)
             else:
                 render_push_stack(f, stack=e.stack if e.stack else [], elements=e.elements)
         elif e.type == PicklevisEventType.METASTACK:
-            f.write(f'<b>{e.type.name}:</b><br/>\n')
+            f.write('<b>{}:</b><br/>\n'.format(e.type))
             if e.datasource == PicklevisEventSource.METASTACK:
                 render_push_meta_stack(f, stack=e.stack if e.stack else [], meta_stack=e.meta_stack if e.meta_stack else [])
             else:
                 render_pop_meta_stack(f, stack=e.stack if e.stack else [], meta_stack=e.meta_stack if e.meta_stack else [])
         else:
-            f.write(f'{e.type.name}: {e.detail} - {content[e.offset: e.offset + e.byte_count]}<br/>')
+            f.write('{}: {} - {}<br/>'.format(e.type, e.detail, content[e.offset: e.offset + e.byte_count]))
 
     f.write("</div>")
