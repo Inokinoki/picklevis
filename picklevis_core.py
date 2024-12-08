@@ -162,4 +162,4 @@ if __name__ == "__main__":
                 print("[{}] {} at {} with {} bytes".format(event.type.name, OPCODE_INT_NAME_MAPPING[event.opcode], event.offset, event.byte_count))
 
         from render.html import render_to_html
-        print(render_to_html(unpickler, f"{sys.argv[-1]}.html"))
+        print(render_to_html(unpickler, "{}.html".format(sys.argv[-1])))
