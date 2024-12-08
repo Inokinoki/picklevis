@@ -30,7 +30,7 @@ for k in pickle_objects_dict:
     if isinstance(pickle_object, bytes) and len(pickle_object) == 1:
         if pickle_object[0] in OPCODES:
             OPCODE_NAME_MAPPING[pickle_object] = k
-            OPCODE_INT_NAME_MAPPING[ord(pickle_object[0])] = k
+            OPCODE_INT_NAME_MAPPING[ord(pickle_object)] = k
 
 
 class Unpickler(OriginalUnpickler):
@@ -61,7 +61,7 @@ class Unpickler(OriginalUnpickler):
 
     def inspect_dispatch(self, opcode, func):
         def inspector(self, *args, **kwargs):
-            logger.debug("Calling {} for opcode 0x{:02X}".format(func.__name__, ord(opcode)))
+            logger.debug("Calling {} for opcode 0x{:02X}".format(func.__name__, ord(chr(opcode))))
             self.picklevis_ops.append(func.__name__)
             self.picklevis_opcodes.append(opcode)
 
@@ -78,7 +78,7 @@ class Unpickler(OriginalUnpickler):
                 before = self._unframer.current_frame.tell()
 
             for capture in self._captures:
-                events.events += capture.precall(opcode, OPCODE_INT_NAME_MAPPING[ord(opcode)], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+                events.events += capture.precall(opcode, OPCODE_INT_NAME_MAPPING[ord(chr(opcode))], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             # Call the real dispatch function
             try:
@@ -122,7 +122,7 @@ class Unpickler(OriginalUnpickler):
                 events.offset = before - 1
 
             for capture in self._captures:
-                events.events += capture.postcall(opcode, OPCODE_INT_NAME_MAPPING[ord(opcode)], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
+                events.events += capture.postcall(opcode, OPCODE_INT_NAME_MAPPING[ord(chr(opcode))], stack=self.stack, metastack=self.metastack, memo=self.memo, pos=before)
 
             self.picklevis_events.append(events)
 
