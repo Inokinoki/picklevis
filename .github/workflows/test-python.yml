@@ -9,11 +9,6 @@ jobs:
       matrix:
         python-version: ["2.7", "3.5", "3.10"]
 
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
-
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -28,14 +23,9 @@ jobs:
 
       - name: Unpickle example files
         working-directory: ./
-        run: for f in $(find . -name "examples/*.pkl"); do python picklevis_core.py $f; done
-
-      - name: Upload output html files
-        if: ${{ matrix.python-version == '3.10' }}
-        uses: actions/upload-pages-artifact@v2
-        with:
-          path: ./examples/*.html
-
-      - name: Deploy to GitHub Pages with different Python versions
-        if: ${{ matrix.python-version == '3.10' }}
-        uses: actions/deploy-pages@v4
+        run: |
+          for f in $(ls examples/*.pkl)
+          do
+            echo "Unpickling $f"
+            python picklevis_core.py $f
+          done
