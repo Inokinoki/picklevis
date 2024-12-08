@@ -146,7 +146,11 @@ class Unpickler(OriginalUnpickler):
 
 
 if __name__ == "__main__":
-    with open("data.1.pkl", "rb") as f:
+    if len(sys.argv) < 2:
+        print("Usage: {} <pickle file>".format(sys.argv[0]))
+        exit(-1)
+
+    with open(sys.argv[-1], "rb") as f:
         unpickler = Unpickler(f)
         unpickler.load()
         print("OPERATIONS:\t{}".format(len(unpickler.picklevis_ops)))
@@ -158,4 +162,4 @@ if __name__ == "__main__":
                 print("[{}] {} at {} with {} bytes".format(event.type.name, OPCODE_INT_NAME_MAPPING[event.opcode], event.offset, event.byte_count))
 
         from render.html import render_to_html
-        print(render_to_html(unpickler, "data.pkl.html"))
+        print(render_to_html(unpickler, f"{sys.argv[-1]}.html"))
