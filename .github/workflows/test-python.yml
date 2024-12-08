@@ -9,6 +9,8 @@ jobs:
       matrix:
         python-version: ["2.7", "3.5", "3.10"]
 
+    environment:
+      name: github-pages
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
       pages: write      # to deploy to Pages
