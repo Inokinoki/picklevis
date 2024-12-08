@@ -28,7 +28,12 @@ jobs:
 
       - name: Unpickle example files
         working-directory: ./
-        run: for f in $(find . -name "examples/*.pkl"); do python picklevis_core.py $f; done
+        run: |
+          for f in $(find . -name "examples/*.pkl");
+          do
+            echo "Unpickling $f"
+            python picklevis_core.py $f
+          done
 
       - name: Upload output html files
         if: ${{ matrix.python-version == '3.10' }}
