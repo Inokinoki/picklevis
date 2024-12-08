@@ -250,7 +250,7 @@ class StackCapture(PicklevisCapturer):
                 ),
             )
         elif op_name == "FLOAT" or op_name == "BINFLOAT":
-            logger.debug("Loaded float {stack[-1]}".format(stack[-1]))
+            logger.debug("Loaded float {}".format(stack[-1]))
             events.append(
                 PicklevisEventStack(
                     opcode,

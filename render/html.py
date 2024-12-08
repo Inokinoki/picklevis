@@ -51,7 +51,7 @@ def _render_hex_table(unpickler, f):
             f.write('onmouseover="highlight_for_byte({}, highlight_color)" '.format(byte_counter + b_index))
             f.write('onmouseout="unhighlight_for_byte({}, \'\')" '.format(byte_counter + b_index))
             f.write('onclick="swtich_for_byte({}, highlight_color)">'.format(byte_counter + b_index))
-            f.write('<code>{:02X}&nbsp;</code></td>'.format(ord(b)))
+            f.write('<code>{:02X}&nbsp;</code></td>'.format(ord(chr(b))))
             b_index += 1
             if b_index == 8:
                 f.write("<td> </td>")
@@ -67,8 +67,8 @@ def _render_hex_table(unpickler, f):
             f.write('onmouseover="highlight_for_byte({}, highlight_color)" '.format(byte_counter + b_index))
             f.write('onmouseout="unhighlight_for_byte({}, \'\')" '.format(byte_counter + b_index))
             f.write('onclick="swtich_for_byte({}, highlight_color)"><code>'.format(byte_counter + b_index))
-            if chr(ord(b)) in string.printable:
-                f.write(html.escape(chr(ord(b))))
+            if chr(ord(chr(b))) in string.printable:
+                f.write(html.escape(chr(ord(chr(b)))))
             else:
                 f.write(".")
             f.write("</code></td>\n")
@@ -249,7 +249,7 @@ def render_pop_meta_stack(f, stack, meta_stack, count=5):
 def render_event_info(f, event, content):
     f.write('<div>')
     f.write('Operation: {} ({}, {})<br/>\n'.format(
-        html.escape(OPCODE_INT_NAME_MAPPING[ord(event.opcode)]), event.opcode, hex(ord(event.opcode)),
+        html.escape(OPCODE_INT_NAME_MAPPING[ord(chr(event.opcode))]), event.opcode, hex(ord(chr(event.opcode))),
     ))
     f.write('From byte {} ({})'.format(event.offset, hex(event.offset)))
     f.write('to byte {} '.format(event.offset + event.byte_count - 1))
