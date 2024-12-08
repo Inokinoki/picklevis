@@ -1,0 +1,33 @@
+name: Python pickle/unpickle test
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["2.7", "3.5", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # You can test your matrix by printing the current Python version
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Generate example pickle files
+        working-directory: ./examples
+        run: python generate_pickle.py
+      
+      - name: Unpickle example files
+        working-directory: ./
+        run: for f in $(find . -name "examples/*.pickle"); do python picklevis_core.py $f; done
