@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,10 +25,20 @@ jobs:
         working-directory: ./
         run: for f in $(find . -name "examples/*.pickle"); do python picklevis_core.py $f; done
 
-      - name: Deploy to GitHub Pages with different Python versions
+      - name: Upload output html files
         if: ${{ matrix.python-version == '3.10' }}
-        uses: peaceiris/actions-gh-pages@v3
+        uses: actions/upload-pages-artifact@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./examples
-          publish_branch: gh-pages
+          path: ./examples/*.html
+
+  deploy:
+    needs: build
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to GitHub Pages with different Python versions
+        uses: actions/deploy-pages@v4
