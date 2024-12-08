@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+.DS_Store
+
 # C extensions
 *.so
 
@@ -161,3 +163,7 @@ cython_debug/
 
 # Test pickle files
 *.pkl
+*.pkl.hex
+*.pkl.txt
+# Test output
+*.pkl.html
