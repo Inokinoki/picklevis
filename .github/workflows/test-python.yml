@@ -29,6 +29,7 @@ jobs:
       - name: Unpickle example files
         working-directory: ./
         run: |
+          ls -l
           for f in $(find . -name "examples/*.pkl");
           do
             echo "Unpickling $f"
