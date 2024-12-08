@@ -30,7 +30,7 @@ jobs:
         working-directory: ./
         run: |
           ls -l examples
-          for f in $(find . -name "examples/*.pkl");
+          for f in $(ls "examples/*.pkl");
           do
             echo "Unpickling $f"
             python picklevis_core.py $f
