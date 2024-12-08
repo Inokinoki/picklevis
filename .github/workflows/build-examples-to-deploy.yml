@@ -1,0 +1,54 @@
+
+
+name: Python pickle/unpickle build and deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: gabrielfalcao/pyenv-action@v18
+        with:
+          default: ${{ matrix.python-version }}
+          command: python -c "import sys; print(sys.version)"
+
+      - name: Generate example pickle files
+        working-directory: ./examples
+        run: python generate.py
+
+      - name: Unpickle example files
+        working-directory: ./
+        run: |
+          for f in $(ls examples/*.pkl)
+          do
+            echo "Unpickling $f"
+            python picklevis_core.py $f
+          done
+
+      - name: Upload output example files
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: ./examples/
+
+      - name: Deploy to GitHub Pages with different Python versions
+        id: deployment
+        uses: actions/deploy-pages@v4
