@@ -27,9 +27,9 @@ jobs:
         run: for f in $(find . -name "examples/*.pickle"); do python picklevis_core.py $f; done
 
       - name: Deploy to GitHub Pages with different Python versions
-        uses: crazy-max/ghaction-github-pages@v2
         if: ${{ matrix.python-version == '3.10' }}
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          target_branch: gh-pages
-          build_dir: examples
-          commit_message: "Deployed on $(date)"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./examples
+          publish_branch: gh-pages
