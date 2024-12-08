@@ -35,6 +35,7 @@ jobs:
             echo "Unpickling $f"
             python picklevis_core.py $f
           done
+          ls -l examples
 
       - name: Upload output html files
         if: ${{ matrix.python-version == '3.10' }}
