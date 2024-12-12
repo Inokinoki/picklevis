@@ -13,20 +13,20 @@ if __name__ == "__main__":
         pickle.dump(2**64, f, protocol=1)
     # Dump a long less than 256 bytes
     with open("long1.pkl", "wb") as f:
-        pickle.dump(2**(254 * 8), f)
+        pickle.dump(2**(254 * 8), f, protocol=3)
     with open("long4.pkl", "wb") as f:
-        pickle.dump(2**(255 * 8), f)
+        pickle.dump(2**(255 * 8), f, protocol=3)
 
     with open("true.pkl", "wb") as f:
-        pickle.dump(True, f)
+        pickle.dump(True, f, protocol=3)
     with open("false.pkl", "wb") as f:
-        pickle.dump(False, f)
+        pickle.dump(False, f, protocol=3)
 
     with open("none.pkl", "wb") as f:
-        pickle.dump(None, f)
+        pickle.dump(None, f, protocol=3)
 
     with open("float.pkl", "wb") as f:
-        pickle.dump(0.3, f)
+        pickle.dump(0.3, f, protocol=3)
 
     with open("str.pkl", "wb") as f:
         pickle.dump("hello", f)
