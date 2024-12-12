@@ -246,6 +246,20 @@ def render_pop_meta_stack(f, stack, meta_stack, count=5):
     f.write('</table>')
 
 
+def render_event_type(type):
+    if type == PicklevisEventType.MEMO:
+        return "MEMO"
+    elif type == PicklevisEventType.STACK:
+        return "STACK"
+    elif type == PicklevisEventType.METASTACK:
+        return "METASTACK"
+    elif type == PicklevisEventType.INFO:
+        return "INFO"
+    elif type == PicklevisEventType.GROUP:
+        return "GROUP"
+    return "Unknown"
+
+
 def render_event_info(f, event, content):
     f.write('<div>')
     f.write('Operation: {} ({}, {})<br/>\n'.format(
@@ -257,7 +271,7 @@ def render_event_info(f, event, content):
     f.write('Total: {} byte{}<br/>\n'.format(event.byte_count, "s" if event.byte_count > 1 else ""))
     for e in event.events:
         if e.type == PicklevisEventType.MEMO:
-            f.write('<b>{}:</b><br/> \n'.format(e.type))
+            f.write('<b>{}:</b><br/> \n'.format(render_event_type(e.type)))
             if e.datasource == PicklevisEventSource.STACK:
                 render_pop_stack(
                     f,
@@ -271,7 +285,7 @@ def render_event_info(f, event, content):
                     elements=list(map(lambda name: 'MEMO "{}"'.format(name), e.elements))
                 )
         elif e.type == PicklevisEventType.STACK:
-            f.write('<b>{}:</b><br/>\n'.format(e.type))
+            f.write('<b>{}:</b><br/>\n'.format(render_event_type(e.type)))
             if e.datasource == PicklevisEventSource.MEMO:
                 render_push_stack(
                     f,
@@ -283,12 +297,12 @@ def render_event_info(f, event, content):
             else:
                 render_push_stack(f, stack=e.stack if e.stack else [], elements=e.elements)
         elif e.type == PicklevisEventType.METASTACK:
-            f.write('<b>{}:</b><br/>\n'.format(e.type))
+            f.write('<b>{}:</b><br/>\n'.format(render_event_type(e.type)))
             if e.datasource == PicklevisEventSource.METASTACK:
                 render_push_meta_stack(f, stack=e.stack if e.stack else [], meta_stack=e.meta_stack if e.meta_stack else [])
             else:
                 render_pop_meta_stack(f, stack=e.stack if e.stack else [], meta_stack=e.meta_stack if e.meta_stack else [])
         else:
-            f.write('{}: {} - {}<br/>'.format(e.type, e.detail, content[e.offset: e.offset + e.byte_count]))
+            f.write('{}: {} - {}<br/>'.format(render_event_type(e.type), e.detail, content[e.offset: e.offset + e.byte_count]))
 
     f.write("</div>")
