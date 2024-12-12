@@ -2,12 +2,12 @@ import pickle
 
 if __name__ == "__main__":
     # Dump an integer
-    with open("int1.pkl", "wb") as f:
-        pickle.dump(255, f)
-    with open("int2.pkl", "wb") as f:
-        pickle.dump(65535, f)
-    with open("int.pkl", "wb") as f:
-        pickle.dump(-256, f)
+    with open("int1_v3.pkl", "wb") as f:
+        pickle.dump(255, f, protocol=3)
+    with open("int2_v3.pkl", "wb") as f:
+        pickle.dump(65535, f, protocol=3)
+    with open("int_v3.pkl", "wb") as f:
+        pickle.dump(-256, f, protocol=3)
 
     with open("long.pkl", "wb") as f:
         pickle.dump(2**64, f, protocol=1)
@@ -47,6 +47,10 @@ if __name__ == "__main__":
         pickle.dump((1, 2, 3), f)
     with open("tuple_v3.pkl", "wb") as f:
         pickle.dump((1, 2, 3), f, protocol=3)
+    with open("tuple_more_elements.pkl", "wb") as f:
+        pickle.dump((1, 2, 3, 4), f)
+    with open("tuple_more_elements_v3.pkl", "wb") as f:
+        pickle.dump((1, 2, 3, 4), f, protocol=3)
 
     with open("set.pkl", "wb") as f:
         # Protocol 4 imports empty set, which does not require global import
