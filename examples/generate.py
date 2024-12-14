@@ -1,5 +1,9 @@
 import pickle
 
+# Import parent directory
+import sys
+sys.path.append("..")
+
 if __name__ == "__main__":
     # Dump an integer
     with open("int1_v3.pkl", "wb") as f:
@@ -85,5 +89,5 @@ if __name__ == "__main__":
         pickle.dump(dis, f, protocol=3)
 
     with open("class_v3.pkl", "wb") as f:
-        from myclass import MyClass
+        from examples.myclass import MyClass
         pickle.dump(MyClass(False), f, protocol=3)
