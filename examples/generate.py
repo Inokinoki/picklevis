@@ -83,3 +83,7 @@ if __name__ == "__main__":
         # Old global
         from pickletools import dis
         pickle.dump(dis, f, protocol=3)
+
+    with open("class_v3.pkl", "wb") as f:
+        from myclass import MyClass
+        pickle.dump(MyClass(False), f, protocol=3)
