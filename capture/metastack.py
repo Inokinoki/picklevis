@@ -1,8 +1,8 @@
-import copy
 import logging
 
 from capture.base import PicklevisCapturer
 from event import PicklevisEventMetaStack, PicklevisEventSource
+from capture.utils import copy_stack
 
 
 logger = logging.getLogger(__file__)
@@ -22,7 +22,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -32,7 +32,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -42,7 +42,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -53,7 +53,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -63,7 +63,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -73,7 +73,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -83,7 +83,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -93,7 +93,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -103,7 +103,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -114,7 +114,7 @@ class MetastackCapture(PicklevisCapturer):
                     PicklevisEventMetaStack(
                         opcode,
                         datasource=PicklevisEventSource.METASTACK,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         elements=metastack[-1],
                     ),
                 )
@@ -130,7 +130,7 @@ class MetastackCapture(PicklevisCapturer):
                 PicklevisEventMetaStack(
                     opcode,
                     datasource=PicklevisEventSource.STACK,
-                    elements=list(reversed(copy.deepcopy(metastack[-1]))),
+                    elements=list(reversed(copy_stack(metastack[-1]))),
                 ),
             )
         return events

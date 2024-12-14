@@ -1,8 +1,8 @@
-import copy
 import logging
 
 from capture.base import PicklevisCapturer
 from event import PicklevisEventMemo, PicklevisEventSource
+from capture.utils import copy_stack
 
 
 logger = logging.getLogger(__file__)
@@ -37,7 +37,7 @@ class MemoCapture(PicklevisCapturer):
                         touched_key = k
                         break
                 logger.debug("Set {} from stack as {}".format(stack[-1], touched_key))
-                s = copy.deepcopy(stack)
+                s = copy_stack(stack)
                 s.reverse()
                 events.append(
                     PicklevisEventMemo(
@@ -59,13 +59,13 @@ class MemoCapture(PicklevisCapturer):
                     PicklevisEventMemo(
                         opcode,
                         datasource=PicklevisEventSource.MEMO,
-                        stack=list(reversed(copy.deepcopy(stack))),
+                        stack=list(reversed(copy_stack(stack))),
                         touched_elements=[stack[-1]],
                     ),
                 )
             elif op_name == "MEMOIZE":
                 logger.debug("Memorize {} from stack as {}".format(stack[-1], len(memo) - 1))
-                s = copy.deepcopy(stack)
+                s = copy_stack(stack)
                 s.reverse()
                 events.append(
                     PicklevisEventMemo(

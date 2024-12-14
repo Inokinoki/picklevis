@@ -1,8 +1,8 @@
-import copy
 import logging
 
 from capture.base import PicklevisCapturer
 from event import PicklevisEventSource, PicklevisEventStack
+from capture.utils import copy_stack
 
 
 logger = logging.getLogger(__file__)
@@ -25,7 +25,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.STACK,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -35,7 +35,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -45,7 +45,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-2]))),
+                    stack=list(reversed(copy_stack(stack[:-2]))),
                     elements=["{}: {}".format(stack[-2], stack[-1])],
                 ),
             )
@@ -55,7 +55,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -65,7 +65,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.STACK,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -75,7 +75,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -85,7 +85,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack))),
+                    stack=list(reversed(copy_stack(stack))),
                     elements=[stack[-1]],
                 ),
             )
@@ -95,7 +95,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.STACK,
-                    stack=list(reversed(copy.deepcopy(stack))),
+                    stack=list(reversed(copy_stack(stack))),
                 ),
             )
         elif op_name == "STACK_GLOBAL":
@@ -104,7 +104,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -152,7 +152,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[klass_name],
                 ),
             )
@@ -162,7 +162,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack))),
+                    stack=list(reversed(copy_stack(stack))),
                     elements=self.temp,
                 ),
             )
@@ -173,7 +173,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack))),
+                    stack=list(reversed(copy_stack(stack))),
                     elements=self.temp.copy(),
                 ),
             )
@@ -184,7 +184,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=["Empty {}".format(stack[-1].__class__.__name__)],
                 ),
             )
@@ -194,7 +194,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack))),
+                    stack=list(reversed(copy_stack(stack))),
                     elements=self.temp.copy(),
                 ),
             )
@@ -205,7 +205,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -215,7 +215,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=["None"],
                 ),
             )
@@ -225,7 +225,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[str(stack[-1])],
                 ),
             )
@@ -235,7 +235,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -245,7 +245,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -255,7 +255,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -267,7 +267,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -277,7 +277,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -287,7 +287,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack[:-1]))),
+                    stack=list(reversed(copy_stack(stack[:-1]))),
                     elements=[stack[-1]],
                 ),
             )
@@ -297,7 +297,7 @@ class StackCapture(PicklevisCapturer):
                 PicklevisEventStack(
                     opcode,
                     datasource=PicklevisEventSource.UNKNOWN,
-                    stack=list(reversed(copy.deepcopy(stack))),
+                    stack=list(reversed(copy_stack(stack))),
                     elements=["Read-only"],
                 ),
             )
