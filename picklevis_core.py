@@ -1,6 +1,8 @@
-import pickle
+import argparse
+import io
 import logging
-
+import pickle
+import pickletools
 import platform
 import sys
 
@@ -9,6 +11,7 @@ from capture.memo import MemoCapture
 from capture.misc import MiscCapture
 from capture.stack import StackCapture
 
+from event import PicklevisEvent
 from event import PicklevisEventGroup
 
 
@@ -42,6 +45,8 @@ class Unpickler(OriginalUnpickler):
         self.picklevis_ops = []
         self.picklevis_byte_count = []
         self.picklevis_events = []
+        self.parse_error = None
+        self.parse_error = None
         self._file = file
         self._captures = [
             MetastackCapture(),
@@ -145,21 +150,127 @@ class Unpickler(OriginalUnpickler):
         return self._file
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: {} <pickle file>".format(sys.argv[0]))
-        exit(-1)
+class NonExecutingAnalyzer(object):
+    """Parse pickle opcodes without running unpickling logic."""
 
-    with open(sys.argv[-1], "rb") as f:
-        unpickler = Unpickler(f)
+    def __init__(self, file_or_bytes):
+        if hasattr(file_or_bytes, "read"):
+            raw = file_or_bytes.read()
+        else:
+            raw = file_or_bytes
+
+        if not isinstance(raw, bytes):
+            raise TypeError("pickle payload must be bytes")
+
+        self._raw = raw
+        self._file = io.BytesIO(raw)
+        self.picklevis_opcodes = []
+        self.picklevis_ops = []
+        self.picklevis_byte_count = []
+        self.picklevis_events = []
+
+    @staticmethod
+    def _opcode_to_int(code):
+        if isinstance(code, int):
+            return code
+        if isinstance(code, bytes):
+            return code[0]
+        return ord(code)
+
+    def load(self):
+        op_items = []
+        parse_error = None
+        iterator = pickletools.genops(self._raw)
+        while True:
+            try:
+                op_items.append(next(iterator))
+            except StopIteration:
+                break
+            except Exception as exc:
+                parse_error = exc
+                break
+
+        raw_len = len(self._raw)
+        positions = [pos for _, _, pos in op_items]
+
+        for index, (op, arg, pos) in enumerate(op_items):
+            opcode = self._opcode_to_int(op.code)
+            self.picklevis_opcodes.append(opcode)
+            self.picklevis_ops.append(op.name)
+            OPCODE_INT_NAME_MAPPING.setdefault(opcode, op.name)
+
+            if index + 1 < len(positions):
+                next_pos = positions[index + 1]
+            else:
+                next_pos = raw_len
+            byte_count = max(1, next_pos - pos)
+            self.picklevis_byte_count.append(byte_count)
+
+            event = PicklevisEventGroup(opcode, byte_count=byte_count, offset=pos)
+            if arg is not None:
+                event.events.append(PicklevisEvent(opcode, detail=str(arg)))
+            self.picklevis_events.append(event)
+
+        if parse_error is not None:
+            self.parse_error = str(parse_error)
+
+    def get_events(self):
+        return self.picklevis_events
+
+    def get_file(self):
+        self._file.seek(0)
+        return self._file
+
+
+def analyze_pickle_bytes(payload, execute=False):
+    if execute:
+        file_handle = io.BytesIO(payload)
+        unpickler = Unpickler(file_handle)
         unpickler.load()
-        print("OPERATIONS:\t{}".format(len(unpickler.picklevis_ops)))
-        print("OPCODES:\t{}".format(len(unpickler.picklevis_opcodes)))
-        print("READ BYTES:\t{}".format(sum(unpickler.picklevis_byte_count)))
-        print("Event groups: {}".format(len(unpickler.picklevis_events)))
-        if "--verbose" in sys.argv:
-            for event in unpickler.picklevis_events:
-                print("[{}] {} at {} with {} bytes".format(event.type.name, OPCODE_INT_NAME_MAPPING[event.opcode], event.offset, event.byte_count))
+        return unpickler
 
-        from render.html import render_to_html
-        print(render_to_html(unpickler, "{}.html".format(sys.argv[-1])))
+    analyzer = NonExecutingAnalyzer(payload)
+    analyzer.load()
+    return analyzer
+
+
+def analyze_pickle_file(path, execute=False):
+    with open(path, "rb") as f:
+        payload = f.read()
+    return analyze_pickle_bytes(payload, execute=execute)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Visualize Python pickle files.")
+    parser.add_argument("pickle_file", help="Path to a pickle file")
+    parser.add_argument("-o", "--output", help="Output html file path")
+    parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Run pickle unpickling semantics (unsafe for untrusted files)",
+    )
+    parser.add_argument("--verbose", action="store_true", help="Print parsed opcodes")
+    args = parser.parse_args(argv)
+
+    unpickler = analyze_pickle_file(args.pickle_file, execute=args.execute)
+
+    output_path = args.output or "{}.html".format(args.pickle_file)
+    if args.verbose:
+        for event in unpickler.picklevis_events:
+            op_name = OPCODE_INT_NAME_MAPPING.get(event.opcode, "UNKNOWN")
+            print("[{}] {} at {} with {} bytes".format(event.type, op_name, event.offset, event.byte_count))
+    if getattr(unpickler, "parse_error", None):
+        print("WARNING:\t{}".format(unpickler.parse_error))
+
+    print("OPERATIONS:\t{}".format(len(unpickler.picklevis_ops)))
+    print("OPCODES:\t{}".format(len(unpickler.picklevis_opcodes)))
+    print("READ BYTES:\t{}".format(sum(unpickler.picklevis_byte_count)))
+    print("Event groups: {}".format(len(unpickler.picklevis_events)))
+
+    from render.html import render_to_html
+    print(render_to_html(unpickler, output_path))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
